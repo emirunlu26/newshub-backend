@@ -45,7 +45,7 @@ class PostReaction(models.Model):
         class Meta:
             constraints = [
                 models.UniqueConstraint(
-                    fields=["post, reaction_owner"],
+                    fields=["post", "reaction_owner"],
                     name="unique_user_reaction_per_post"
                 )
             ]
@@ -62,7 +62,7 @@ class CommentReaction(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields = ["comment, reaction_owner"],
+                fields = ["comment", "reaction_owner"],
                 name="unique_user_reaction_per_comment"
             )
         ]

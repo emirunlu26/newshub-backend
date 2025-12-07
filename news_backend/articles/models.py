@@ -76,7 +76,7 @@ class ArticleReaction(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields = ["article, reaction_owner"],
+                fields = ["article", "reaction_owner"],
                 name="unique_user_reaction_per_article"
             )
         ]
@@ -100,7 +100,7 @@ class EditTask(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields = ["edited_article, title"],
+                fields = ["edited_article", "title"],
                 name="unique_edit_task_title_per_article"
             )
         ]
