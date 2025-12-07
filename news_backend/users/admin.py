@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import User, Author, Editor, UserProfile, UserCustomization
+from users.models import User, Author, Editor, UserProfile, UserCustomization
 
 # Register your models here.
 

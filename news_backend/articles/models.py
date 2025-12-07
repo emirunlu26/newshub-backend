@@ -5,16 +5,16 @@ from django.db import models
 # Create your models here.
 
 class Category(models.Model):
-    name = models.CharField(verbose_name="Name")
-    slug = models.CharField(unique=True, verbose_name="Slug")
+    name = models.CharField(max_length=50, verbose_name="Name")
+    slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
     parent_category = models.ForeignKey(to="articles.Category", on_delete=models.CASCADE
                                         , verbose_name="Parent Category")
     def __str__(self):
         return self.name
 
 class Tag(models.Model):
-    name = models.CharField(verbose_name="Name")
-    slug = models.CharField(unique=True, verbose_name="Slug")
+    name = models.CharField(max_length=50, verbose_name="Name")
+    slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
 
     def __str__(self):
         return self.name
@@ -37,15 +37,16 @@ class Article(models.Model):
 
     DEFAULT_ARTICLE_STATUS = "d-in-progress"
 
-    type = models.CharField(choices=ARTICLE_TYPE_CHOICES, verbose_name="Article Type")
-    slug = models.CharField(unique=True, verbose_name="Slug")
+    type = models.CharField(max_length=50, choices=ARTICLE_TYPE_CHOICES, verbose_name="Article Type")
+    slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Writing Time")
     published_at = models.DateTimeField(auto_now=False, auto_created=False, verbose_name="Publication Time")
     editors = models.ManyToManyField(to="users.Editor", verbose_name="Editor")
-    title = models.CharField(verbose_name="Title")
+    title = models.CharField(max_length=255, verbose_name="Title")
     content = RichTextField()
     summary = models.TextField(verbose_name="Summary")
-    status = models.CharField(choices=ARTICLE_STATUS_CHOICES, default=DEFAULT_ARTICLE_STATUS, verbose_name="Status")
+    status = models.CharField(max_length=50, choices=ARTICLE_STATUS_CHOICES
+                              , default=DEFAULT_ARTICLE_STATUS, verbose_name="Status")
     cover_image = models.FileField(verbose_name="Cover Image")
     requires_premium = models.BooleanField(default=False, verbose_name="Requires Premium")
     tags = models.ManyToManyField(to=Tag, verbose_name="Tag")
@@ -76,20 +77,22 @@ class ArticleReaction(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields = ["article, reaction_owner"],
-                name="unique_user_reaction_per_comment"
+                name="unique_user_reaction_per_article"
             )
         ]
 
 class EditTask(models.Model):
-    title = models.CharField(verbose_name="Task Title")
+    title = models.CharField(max_length=255, verbose_name="Task Title")
     description = models.TextField(verbose_name="Task Description")
     edited_article = models.ForeignKey(to=Article,on_delete=models.CASCADE, related_name="edit_tasks"
                                        , verbose_name="Edited Article")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Edit Creation Time")
     deadline = models.DateField(auto_now=False, auto_now_add=False, verbose_name="Deadline")
     completed_at = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="Completion Time")
-    created_by = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, verbose_name="Task Creator Editor")
-    assigned_editor = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, verbose_name="Assigned Editor")
+    created_by = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, related_name="created_tasks"
+                                   , verbose_name="Task Creator Editor")
+    assigned_editor = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, related_name="assigned_tasks"
+                                        , verbose_name="Assigned Editor")
 
     def __str__(self):
         return self.title

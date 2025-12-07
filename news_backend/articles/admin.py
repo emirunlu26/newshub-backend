@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import Category, Tag, Article, ArticleView, ArticleReaction, EditTask
+from articles.models import Category, Tag, Article, ArticleView, ArticleReaction, EditTask
 
 # Register your models here.
 

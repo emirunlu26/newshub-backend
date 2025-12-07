@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 
 class Reaction(models.Model):
-    name = models.CharField(unique=True, verbose_name="Name")
+    name = models.CharField(max_length=50, unique=True, verbose_name="Name")
     icon = models.FileField(verbose_name="Icon")
 
     def __str__(self):

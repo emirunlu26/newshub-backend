@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import Reaction, PostReaction, CommentReaction, Post, Comment, PostImage
+from posts.models import Reaction, PostReaction, CommentReaction, Post, Comment, PostImage
 
 # Register your models here.
 

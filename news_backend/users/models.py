@@ -6,14 +6,15 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     followers = models.ManyToManyField(to="self", related_name="following_list")
-    bookmarked_articles = models.ManyToManyField(to="articles.Article")
-    viewed_articles = models.ManyToManyField(to="articles.Article", through="ArticleView")
+    bookmarked_articles = models.ManyToManyField(to="articles.Article", related_name="bookmarked_by")
+    viewed_articles = models.ManyToManyField(to="articles.Article", related_name="viewed_by"
+                                             , through="articles.ArticleView")
     followed_categories = models.ManyToManyField(to="articles.Category")
     followed_tags = models.ManyToManyField(to="articles.Tag")
 
 class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
-    slug = models.CharField(unique=True, verbose_name="Slug")
+    slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
     about = models.TextField(verbose_name="About")
     profile_image = models.FileField(verbose_name="Profile Image")
     articles = models.ManyToManyField(to="articles.Article", verbose_name="Written Articles")
@@ -28,9 +29,9 @@ class Editor(models.Model):
     ]
 
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
-    slug = models.CharField(unique=True, verbose_name="Slug")
+    slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
     profile_image = models.FileField(verbose_name="Profile Image")
-    role = models.CharField(choices=ROLE_CHOICES, verbose_name="Editor Role")
+    role = models.CharField(max_length=50, choices=ROLE_CHOICES, verbose_name="Editor Role")
 
     def __str__(self):
         return self.user.name
@@ -38,7 +39,7 @@ class Editor(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name="profile")
     biography = models.TextField(blank=True, verbose_name="Biography")
-    location = models.CharField(verbose_name="Ülke Konumu")
+    location = models.CharField(max_length=100, verbose_name="Ülke Konumu")
     birth_date = models.DateField(auto_now=False, auto_now_add=False, verbose_name="Date of Birth")
     avatar = models.FileField(blank=True, null=True, verbose_name="Profile Picture")
 
@@ -81,11 +82,13 @@ class UserCustomization(models.Model):
 
 
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name="customization")
-    theme = models.CharField(choices=THEME_CHOICES, default=DEFAULT_THEME, verbose_name="Theme")
-    font_type = models.CharField(choices=FONT_CHOICES, default=DEFAULT_FONT_TYPE, verbose_name="Font Type")
+    theme = models.CharField(max_length=50, choices=THEME_CHOICES, default=DEFAULT_THEME, verbose_name="Theme")
+    font_type = models.CharField(max_length=50, choices=FONT_CHOICES, default=DEFAULT_FONT_TYPE
+                                 , verbose_name="Font Type")
     font_size = models.IntegerField(default=DEFAULT_FONT_SIZE, validators=[validate_font_size]
                                     , verbose_name="Font Size")
-    font_colour = models.CharField(choices=FONT_COLOUR_CHOICES, default=DEFAULT_FONT_COLOUR, verbose_name="Font Colour")
+    font_colour = models.CharField(max_length=50, choices=FONT_COLOUR_CHOICES, default=DEFAULT_FONT_COLOUR
+                                   , verbose_name="Font Colour")
 
     def is_premium(self):
         # TO DO: check if the user belongs to the group of premium users
