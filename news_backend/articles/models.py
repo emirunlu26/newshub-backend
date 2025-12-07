@@ -19,6 +19,13 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+class Region(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Name")
+    slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
+
+    def __str__(self):
+        return self.name
+
 
 class Article(models.Model):
     ARTICLE_TYPE_CHOICES = [
@@ -51,6 +58,7 @@ class Article(models.Model):
     requires_premium = models.BooleanField(default=False, verbose_name="Requires Premium")
     tags = models.ManyToManyField(to=Tag, verbose_name="Tag")
     categories = models.ManyToManyField(to=Category, verbose_name="Category")
+    regions = models.ManyToManyField(to="articles.Region", verbose_name="Region")
 
     def __str__(self):
         return self.title
