@@ -1,6 +1,4 @@
 from django.db import models
-from news_backend_project.news_backend.users.models import User
-from news_backend_project.news_backend.articles.models import Article
 
 # Create your models here.
 
@@ -12,11 +10,12 @@ class Reaction(models.Model):
         return self.name
 
 class Post(models.Model):
-    owner = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name="posts", verbose_name="Owner")
+    owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="posts", verbose_name="Owner")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Creation Time")
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="Update Time")
-    referenced_article = models.ForeignKey(to=Article, null=True, verbose_name="Referenced Article")
-    referenced_post = models.ForeignKey(to="self", null=True, verbose_name="Referenced Post")
+    referenced_article = models.ForeignKey(to="articles.Article", on_delete=models.SET_NULL
+                                           , null=True, verbose_name="Referenced Article")
+    referenced_post = models.ForeignKey(to="self", null=True, on_delete=models.SET, verbose_name="Referenced Post")
     content = models.TextField(verbose_name="Content")
 
     def __str__(self):
@@ -27,7 +26,7 @@ class PostImage(models.Model):
     image = models.FileField(verbose_name="Image")
 
 class Comment(models.Model):
-    owner = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name="comments", verbose_name="Owner")
+    owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="comments", verbose_name="Owner")
     post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="comments", verbose_name="Post")
     content = models.TextField(verbose_name="Content")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Creation Time")
@@ -39,7 +38,7 @@ class PostReaction(models.Model):
         post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="reactions"
                                  , verbose_name="Reacted Post")
         reaction = models.ForeignKey(to=Reaction, on_delete=models.CASCADE, verbose_name="Reaction")
-        reaction_owner = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name="post_reactions"
+        reaction_owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="post_reactions"
                                            , verbose_name="Reaction Owner")
         created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Creation Time")
 
@@ -56,7 +55,7 @@ class CommentReaction(models.Model):
     comment = models.ForeignKey(to=Comment, on_delete=models.CASCADE, related_name="reactions"
                              , verbose_name="Reacted Comment")
     reaction = models.ForeignKey(to=Reaction, on_delete=models.CASCADE, verbose_name="Reaction")
-    reaction_owner = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name="comment_reactions"
+    reaction_owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="comment_reactions"
                                        , verbose_name="Reaction Owner")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Creation Time")
 

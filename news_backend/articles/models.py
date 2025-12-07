@@ -1,7 +1,6 @@
 from ckeditor.fields import RichTextField
 from django.db import models
-from news_backend_project.news_backend.posts.models import Reaction
-from news_backend_project.news_backend.users.models import Editor, User
+
 
 # Create your models here.
 
@@ -42,7 +41,7 @@ class Article(models.Model):
     slug = models.CharField(unique=True, verbose_name="Slug")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Writing Time")
     published_at = models.DateTimeField(auto_now=False, auto_created=False, verbose_name="Publication Time")
-    editors = models.ManyToManyField(to=Editor, verbose_name="Editor")
+    editors = models.ManyToManyField(to="users.Editor", verbose_name="Editor")
     title = models.CharField(verbose_name="Title")
     content = RichTextField()
     summary = models.TextField(verbose_name="Summary")
@@ -56,7 +55,7 @@ class Article(models.Model):
         return self.title
 
 class ArticleView(models.Model):
-    user = models.ForeignKey(to=User, on_delete=models.CASCADE, verbose_name="Viewing User")
+    user = models.ForeignKey(to="users.User", on_delete=models.CASCADE, verbose_name="Viewing User")
     article = models.ForeignKey(to=Article, on_delete= models.CASCADE, verbose_name="Viewed Article")
     time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="View Time")
     duration_seconds = models.IntegerField(verbose_name="View Duration In Seconds")
@@ -64,8 +63,8 @@ class ArticleView(models.Model):
 class ArticleReaction(models.Model):
     article = models.ForeignKey(to=Article, on_delete=models.CASCADE, related_name="reactions"
                                 , verbose_name="Reacted Article")
-    reaction = models.ForeignKey(to=Reaction, on_delete=models.CASCADE, verbose_name="Reaction")
-    reaction_owner = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name="article_reactions"
+    reaction = models.ForeignKey(to="posts.Reaction", on_delete=models.CASCADE, verbose_name="Reaction")
+    reaction_owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="article_reactions"
                               , verbose_name="Reacting User")
 
     def __str__(self):
@@ -89,8 +88,8 @@ class EditTask(models.Model):
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Edit Creation Time")
     deadline = models.DateField(auto_now=False, auto_now_add=False, verbose_name="Deadline")
     completed_at = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="Completion Time")
-    created_by = models.ForeignKey(to=Editor, verbose_name="Task Creator Editor")
-    assigned_editor = models.ForeignKey(to=Editor, verbose_name="Assigned Editor")
+    created_by = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, verbose_name="Task Creator Editor")
+    assigned_editor = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, verbose_name="Assigned Editor")
 
     def __str__(self):
         return self.title

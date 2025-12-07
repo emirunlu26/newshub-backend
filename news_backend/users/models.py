@@ -1,23 +1,22 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
-from news_backend_project.news_backend.articles.models import Article, Category, Tag
 
 # Create your models here.
 
 class User(AbstractUser):
     followers = models.ManyToManyField(to="self", related_name="following_list")
-    bookmarked_articles = models.ManyToManyField(to=Article)
-    viewed_articles = models.ManyToManyField(to=Article, through="ArticleView")
-    followed_categories = models.ManyToManyField(to=Category)
-    followed_tags = models.ManyToManyField(to=Tag)
+    bookmarked_articles = models.ManyToManyField(to="articles.Article")
+    viewed_articles = models.ManyToManyField(to="articles.Article", through="ArticleView")
+    followed_categories = models.ManyToManyField(to="articles.Category")
+    followed_tags = models.ManyToManyField(to="articles.Tag")
 
 class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
     slug = models.CharField(unique=True, verbose_name="Slug")
     about = models.TextField(verbose_name="About")
     profile_image = models.FileField(verbose_name="Profile Image")
-    articles = models.ManyToManyField(to=Article, verbose_name="Written Articles")
+    articles = models.ManyToManyField(to="articles.Article", verbose_name="Written Articles")
 
     def __str__(self):
         return self.user.name
@@ -81,7 +80,7 @@ class UserCustomization(models.Model):
             )
 
 
-    user = models.OneToOneField(to=User, related_name="customization")
+    user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name="customization")
     theme = models.CharField(choices=THEME_CHOICES, default=DEFAULT_THEME, verbose_name="Theme")
     font_type = models.CharField(choices=FONT_CHOICES, default=DEFAULT_FONT_TYPE, verbose_name="Font Type")
     font_size = models.IntegerField(default=DEFAULT_FONT_SIZE, validators=[validate_font_size]
