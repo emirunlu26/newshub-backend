@@ -22,8 +22,8 @@ class Tag(models.Model):
 class Region(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Name")
     slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
-    belongs_to = models.ForeignKey(to="articles.Region", null=True, related_name="belonging_regions"
-                                   , on_delete=models.SET_NULL, verbose_name="Belongs To")
+    belongs_to = models.ManyToManyField(to="articles.Region", related_name="belonging_regions", blank=True
+                                        , verbose_name="Belongs To")
 
     def __str__(self):
         return self.name
