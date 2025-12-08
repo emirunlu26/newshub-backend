@@ -6,11 +6,23 @@ from django.db import models
 
 class Category(models.Model):
     name = models.CharField(max_length=50, verbose_name="Name")
-    slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
-    parent_category = models.ForeignKey(to="articles.Category", on_delete=models.CASCADE
+    slug = models.CharField(max_length=50, verbose_name="Slug")
+    parent_category = models.ForeignKey(to="articles.Category", on_delete=models.CASCADE, blank=True, null=True
                                         , verbose_name="Parent Category")
     def __str__(self):
         return self.name
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ["name", "parent_category"],
+                name= "unique_category_name_parent_category"
+            ),
+            models.UniqueConstraint(
+                fields = ["slug", "parent_category"],
+                name = "unique_category_slug_parent_category"
+            )
+        ]
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, verbose_name="Name")
