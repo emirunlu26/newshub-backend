@@ -3,6 +3,8 @@ from . import views
 
 app_name = "users"
 urlpatterns = [
+    path("login/", views.login_user, name="login"),
+    path("logout/", views.logout_user, name="logout"),
     path("profile/<str:username>/", views.view_profile, name="view-profile"),
     path("profile/<str:username>/photo/", views.view_profile_picture, name="view-profile-picture"),
     path("profile/<str:username>/following/", views.view_following_list, name="view-following-list"),

@@ -3,6 +3,14 @@ from django.shortcuts import render
 
 # Create your views here.
 
+def login_user(request):
+    """View function that handles the request to login the requesting anonymous user"""
+    pass
+
+def logout_user(request):
+    """View function that handles the request to logout the requesting user"""
+    pass
+
 def view_profile(request, user_id):
     """View function that returns information about the profile of a specific user"""
     pass
