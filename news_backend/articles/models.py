@@ -44,7 +44,15 @@ class Article(models.Model):
         ("published", "Published")
     ]
 
+    PRIORITY_CHOICES = [
+        (3, "Breaking"),
+        (2, "High Priority"),
+        (1, "Important"),
+        (0, "Normal"),
+    ]
+
     DEFAULT_ARTICLE_STATUS = "d-in-progress"
+    DEFAULT_PRIORITY = 0
 
     type = models.CharField(max_length=50, choices=ARTICLE_TYPE_CHOICES, verbose_name="Article Type")
     slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
@@ -54,6 +62,8 @@ class Article(models.Model):
     title = models.CharField(max_length=255, verbose_name="Title")
     content = RichTextField()
     summary = models.TextField(verbose_name="Summary")
+    priority_level = models.IntegerField(choices=PRIORITY_CHOICES, default= DEFAULT_PRIORITY
+                                         , verbose_name="Priority Level")
     status = models.CharField(max_length=50, choices=ARTICLE_STATUS_CHOICES
                               , default=DEFAULT_ARTICLE_STATUS, verbose_name="Status")
     cover_image = models.FileField(verbose_name="Cover Image")
