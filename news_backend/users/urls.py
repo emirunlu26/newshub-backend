@@ -1,10 +1,17 @@
 from django.urls import path
+from django.contrib.auth import views as auth_views
 from . import views
 
 app_name = "users"
 urlpatterns = [
     path("login/", views.login_user, name="login"),
     path("logout/", views.logout_user, name="logout"),
+    path("password_change/", auth_views.PasswordChangeView.as_view()),
+    path("password_change/done/", auth_views.PasswordChangeDoneView.as_view()),
+    path("password_reset/", auth_views.PasswordResetView.as_view()),
+    path("password_reset/done/", auth_views.PasswordResetDoneView.as_view()),
+    path("reset/<uidb64>/<token>/", auth_views.PasswordResetConfirmView.as_view()),
+    path("reset/done/", auth_views.PasswordResetCompleteView.as_view()),
     path("profile/<str:username>/", views.view_profile, name="view-profile"),
     path("profile/<str:username>/photo/", views.view_profile_picture, name="view-profile-picture"),
     path("profile/<str:username>/following/", views.view_following_list, name="view-following-list"),

@@ -1,16 +1,77 @@
 """View module that contains all view functions to handle requests related to users"""
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, logout, authenticate
+from django.http import JsonResponse
+import json
 
 # Create your views here.
 
 def login_user(request):
     """View function that handles the request to login the requesting anonymous user"""
-    pass
+    if request.user.is_authenticated:
+        return JsonResponse(data={
+            "message": {
+                "content": "You're already logged in.",
+                "type": "info"
+            },
+            "redirect_url": ""
+        })
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON.",
+                    "type": "error"
+                }
+            }, status=400)
+        username = data.get("username")
+        password = data.get("password")
+        user = authenticate(request=request, username=username, password=password)
+        credentials_valid = user is not None
+
+        if credentials_valid:
+            login(request=request, user=user)
+            return JsonResponse(data={
+                "message": {
+                    "content": "Login successful ...",
+                    "type": "success"
+                },
+                "redirect_url": "/homepage",
+                "user": {
+                    "id": user.id,
+                    "username": user.username
+                }
+            })
+        else:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid credentials.",
+                    "type": "error"
+                }
+            }, status=401)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "POST request required.",
+                "type": "error"
+            }
+        }, status=400)
+
+
 
 def logout_user(request):
     """View function that handles the request to logout the requesting user"""
-    pass
+    logout(request)
+    return JsonResponse(data={
+        "message": {
+            "content": "Logout successful ...",
+            "type": "success"
+        },
+        "redirect_url": "",
+    })
 
 def view_profile(request, user_id):
     """View function that returns information about the profile of a specific user"""
