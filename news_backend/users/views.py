@@ -1,8 +1,9 @@
-"""View module that contains all view functions to handle requests related to users"""
+"""View file that contains all view functions to handle requests related to users"""
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.http import JsonResponse
+from . import services
 import json
 
 # Create your views here.
@@ -11,7 +12,7 @@ def register_user(request):
     """View function that handles the request to register the requesting anonymous user"""
     if request.method == "POST":
         try:
-            data = json.loads(request.body)
+            register_data = json.loads(request.body)
         except:
             return JsonResponse(data={
                 "message": {
@@ -19,6 +20,9 @@ def register_user(request):
                     "type": "error"
                 }
             }, status=400)
+        register_data["request"] = request
+        response, status = services.register_user(register_data)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {

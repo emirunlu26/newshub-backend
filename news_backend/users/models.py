@@ -12,7 +12,7 @@ class User(AbstractUser):
         ("u", "Unknown")
     ]
     DEFAULT_GENDER_CHOICE = "u"
-    location = models.CharField(max_length=100, blank=False, null=True, verbose_name="Ülke Konumu")
+    country = models.CharField(max_length=100, blank=False, null=True, verbose_name="Ülke Konumu")
     birth_date = models.DateField(auto_now=False, auto_now_add=False, null=True, verbose_name="Date of Birth")
     gender = models.CharField(max_length=1, default=DEFAULT_GENDER_CHOICE, choices=GENDER_CHOICES
                               , verbose_name="Gender")
@@ -22,6 +22,15 @@ class User(AbstractUser):
                                              , through="articles.ArticleView")
     followed_categories = models.ManyToManyField(to="articles.Category", blank=True)
     followed_tags = models.ManyToManyField(to="articles.Tag", blank=True)
+
+    @staticmethod
+    def is_username_valid(username):
+        # TO DO: implement the method
+        pass
+
+    def is_password_valid(password):
+        # TO DO: implement the method
+        pass
 
 class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
