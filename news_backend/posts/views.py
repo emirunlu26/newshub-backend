@@ -23,8 +23,3 @@ def add_update_view_delete_reaction_to_post(request, post_id):
 def reference_post(request, post_id):
     """View function that handles the request for an user to reference a post"""
     pass
-
-@login_required(login_url="users:login")
-def view_post_form(request):
-    """View function that returns a form to the requesting user to create a post"""
-    pass

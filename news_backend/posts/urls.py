@@ -8,5 +8,4 @@ urlpatterns = [
     path("<int:post_id>/react/", views.add_update_view_delete_reaction_to_post
          , name="add-update-view-delete-reaction-to-post"),
     path("<int:post_id>/reference/", views.reference_post, name="reference-post"),
-    path("compose/", views.view_post_form, name="view-post-form")
 ]
