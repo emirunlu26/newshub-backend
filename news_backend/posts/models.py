@@ -12,10 +12,11 @@ class Reaction(models.Model):
 class Post(models.Model):
     owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="posts", verbose_name="Owner")
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Creation Time")
-    updated_at = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="Update Time")
+    updated_at = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="Update Time",)
     referenced_article = models.ForeignKey(to="articles.Article", on_delete=models.SET_NULL
-                                           , null=True, verbose_name="Referenced Article")
-    referenced_post = models.ForeignKey(to="self", null=True, on_delete=models.SET, verbose_name="Referenced Post")
+                                           , blank=True, null=True, verbose_name="Referenced Article")
+    referenced_post = models.ForeignKey(to="self", blank=True, null=True, on_delete=models.SET
+                                        , verbose_name="Referenced Post")
     content = models.TextField(verbose_name="Content")
 
     def __str__(self):
@@ -32,7 +33,7 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Creation Time")
     updated_at = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="Update Time")
     parent_comment = models.ForeignKey(to="self", on_delete=models.CASCADE, related_name="child_comments"
-                                       , verbose_name="Parent Comment")
+                                       , blank=True, null=True, verbose_name="Parent Comment")
 
 class PostReaction(models.Model):
         post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="reactions"

@@ -13,19 +13,19 @@ class User(AbstractUser):
     location = models.CharField(max_length=100, null=True, verbose_name="Ülke Konumu")
     birth_date = models.DateField(auto_now=False, auto_now_add=False, null=True, verbose_name="Date of Birth")
     gender = models.CharField(max_length=1, null=True, choices=GENDER_CHOICES, verbose_name="Gender")
-    followers = models.ManyToManyField(to="self", related_name="following_list")
-    bookmarked_articles = models.ManyToManyField(to="articles.Article", related_name="bookmarked_by")
-    viewed_articles = models.ManyToManyField(to="articles.Article", related_name="viewed_by"
+    followers = models.ManyToManyField(to="self", blank=True, related_name="following_list")
+    bookmarked_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="bookmarked_by")
+    viewed_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="viewed_by"
                                              , through="articles.ArticleView")
-    followed_categories = models.ManyToManyField(to="articles.Category")
-    followed_tags = models.ManyToManyField(to="articles.Tag")
+    followed_categories = models.ManyToManyField(to="articles.Category", blank=True)
+    followed_tags = models.ManyToManyField(to="articles.Tag", blank=True)
 
 class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
     slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
     about = models.TextField(verbose_name="About")
     profile_image = models.FileField(verbose_name="Profile Image")
-    articles = models.ManyToManyField(to="articles.Article", verbose_name="Written Articles")
+    articles = models.ManyToManyField(to="articles.Article", blank=True, verbose_name="Written Articles")
 
     def __str__(self):
         return self.user.name

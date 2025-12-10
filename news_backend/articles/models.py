@@ -35,7 +35,7 @@ class Region(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Name")
     slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
     belongs_to = models.ManyToManyField(to="articles.Region", related_name="belonging_regions", blank=True
-                                        , verbose_name="Belongs To")
+                                        , null=True, verbose_name="Belongs To")
 
     def __str__(self):
         return self.name
@@ -80,7 +80,7 @@ class Article(models.Model):
                               , default=DEFAULT_ARTICLE_STATUS, verbose_name="Status")
     cover_image = models.FileField(verbose_name="Cover Image")
     requires_premium = models.BooleanField(default=False, verbose_name="Requires Premium")
-    tags = models.ManyToManyField(to=Tag, verbose_name="Tag")
+    tags = models.ManyToManyField(to=Tag, blank=True, verbose_name="Tag")
     categories = models.ManyToManyField(to=Category, verbose_name="Category")
     regions = models.ManyToManyField(to="articles.Region", verbose_name="Region")
 
