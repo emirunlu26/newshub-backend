@@ -9,10 +9,13 @@ class User(AbstractUser):
         ("f", "Female"),
         ("m", "Male"),
         ("o", "Other"),
+        ("u", "Unknown")
     ]
-    location = models.CharField(max_length=100, null=True, verbose_name="Ülke Konumu")
+    DEFAULT_GENDER_CHOICE = "u"
+    location = models.CharField(max_length=100, blank=False, null=True, verbose_name="Ülke Konumu")
     birth_date = models.DateField(auto_now=False, auto_now_add=False, null=True, verbose_name="Date of Birth")
-    gender = models.CharField(max_length=1, null=True, choices=GENDER_CHOICES, verbose_name="Gender")
+    gender = models.CharField(max_length=1, default=DEFAULT_GENDER_CHOICE, choices=GENDER_CHOICES
+                              , verbose_name="Gender")
     followers = models.ManyToManyField(to="self", blank=True, related_name="following_list")
     bookmarked_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="bookmarked_by")
     viewed_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="viewed_by"
