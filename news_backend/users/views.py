@@ -7,6 +7,26 @@ import json
 
 # Create your views here.
 
+def register_user(request):
+    """View function that handles the request to register the requesting anonymous user"""
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON.",
+                    "type": "error"
+                }
+            }, status=400)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "POST request required.",
+                "type": "error"
+            }
+        }, status=405)
+
 def login_user(request):
     """View function that handles the request to login the requesting anonymous user"""
     if request.user.is_authenticated:
