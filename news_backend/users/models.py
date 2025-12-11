@@ -28,6 +28,8 @@ class User(AbstractUser):
         # TO DO: implement the method
         pass
 
+
+    @staticmethod
     def is_password_valid(password):
         # TO DO: implement the method
         pass
