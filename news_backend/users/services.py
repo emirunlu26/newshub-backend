@@ -168,5 +168,27 @@ def view_followed_tags(requesting_user_id):
         "followed_tags": sorted_followed_tags
     }, 200
 
+def view_followed_categories(requesting_user_id):
+    requesting_user = User.objects.filter(id=requesting_user_id).first()
+    if requesting_user is None:
+        return {
+            "message": {
+                "content": "Requesting user with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
+    followed_categories = requesting_user.followed_categories.all()
+    sorted_followed_categories = sorted(followed_categories, key=lambda category: category.name)
+    sorted_followed_categories = [article_serializers.serialize_category(category)
+                                  for category in sorted_followed_categories]
+
+    return {
+        "message": {
+            "content": "The list of followed categories is retrieved successfully.",
+            "type": "success"
+        },
+        "followed_categories": sorted_followed_categories
+    }, 200
 
 

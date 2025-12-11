@@ -150,7 +150,16 @@ def view_followed_tags(request):
 @login_required(login_url="users:login")
 def view_followed_categories(request):
     """View function that returns the list of categories which is followed by the requesting user"""
-    pass
+    if request.method == "GET":
+        response, status = services.view_followed_categories(requesting_user_id=request.user.id)
+        return JsonResponse(data=response, status=status)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def view_bookmarked_articles(request):

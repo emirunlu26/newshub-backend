@@ -4,3 +4,16 @@ def serialize_tag(tag):
         "name": tag.name,
         "slug": tag.slug
     }
+
+def serialize_category(category):
+    parent_category = category.parent_category
+    return {
+        "id": category.id,
+        "name": category.name,
+        "slug": category.slug,
+        "parent_category": {
+            "id": parent_category.id,
+            "name": parent_category.name,
+            "slug": parent_category.slug
+        } if parent_category else None
+    }
