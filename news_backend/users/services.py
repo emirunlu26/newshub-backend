@@ -4,7 +4,8 @@ Service functions implement the business logic.
 """
 from django.contrib.auth import login
 from models import User
-import serializers
+import serializers as user_serializers
+from articles import serializers as article_serializers
 
 def register_user(register_data):
     """Service function that registers an user"""
@@ -99,7 +100,7 @@ def view_following_list(requesting_user_id, target_user_id):
     following_list = target_user.following_list.all()
     sorted_following_list = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
                                                                        , following_or_follower_list=following_list)
-    sorted_following_list = [serializers.serialize_user(user) for user in sorted_following_list]
+    sorted_following_list = [user_serializers.serialize_user(user) for user in sorted_following_list]
     following_count = len(sorted_following_list)
 
     return {
@@ -133,7 +134,7 @@ def view_follower_list(requesting_user_id, target_user_id):
     followers = target_user.followers.all()
     sorted_followers = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
                                                                        , following_or_follower_list=followers)
-    sorted_followers = [serializers.serialize_user(user) for user in sorted_followers]
+    sorted_followers = [user_serializers.serialize_user(user) for user in sorted_followers]
     follower_count = len(sorted_followers)
 
     return {
@@ -144,5 +145,28 @@ def view_follower_list(requesting_user_id, target_user_id):
         "follower_count": follower_count,
         "followers": sorted_followers
     }, 200
+
+def view_followed_tags(requesting_user_id):
+    requesting_user = User.objects.filter(id=requesting_user_id).first()
+    if requesting_user is None:
+        return {
+            "message": {
+                "content": "Requesting user with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
+    followed_tags = requesting_user.followed_tags.all()
+    sorted_followed_tags = sorted(followed_tags, key=lambda tag: tag.name)
+    sorted_followed_tags = [article_serializers.serialize_tag(tag) for tag in sorted_followed_tags]
+
+    return {
+        "message": {
+            "content": "The list of followed tags is retrieved successfully.",
+            "type": "success"
+        },
+        "followed_tags": sorted_followed_tags
+    }, 200
+
 
 

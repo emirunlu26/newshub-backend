@@ -136,7 +136,16 @@ def view_follower_list(request, user_id):
 @login_required(login_url="users:login")
 def view_followed_tags(request):
     """View function that returns the list of tags which is followed by the requesting user"""
-    pass
+    if request.method == "GET":
+        response, status = services.view_followed_tags(requesting_user_id=request.user.id)
+        return JsonResponse(data=response, status=status)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def view_followed_categories(request):
