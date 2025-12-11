@@ -181,8 +181,8 @@ def view_profile_settings(request):
     pass
 
 @login_required(login_url="users:login")
-def view_ui_customization_settings(request):
-    """View function that returns the information about user interface customization settings of the requesting user"""
+def view_update_ui_customization_settings(request):
+    """View function that either returns or updates the user interface customization settings of the requesting user"""
     pass
 
 @login_required(login_url="users:login")
