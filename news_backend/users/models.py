@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
+from functools import cmp_to_key
 
 # Create your models here.
 
@@ -16,7 +17,7 @@ class User(AbstractUser):
     birth_date = models.DateField(auto_now=False, auto_now_add=False, null=True, verbose_name="Date of Birth")
     gender = models.CharField(max_length=1, default=DEFAULT_GENDER_CHOICE, choices=GENDER_CHOICES
                               , verbose_name="Gender")
-    followers = models.ManyToManyField(to="self", blank=True, related_name="following_list")
+    followers = models.ManyToManyField(to="self", symmetrical=False, blank=True, related_name="following_list")
     bookmarked_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="bookmarked_by")
     viewed_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="viewed_by"
                                              , through="articles.ArticleView")
@@ -33,6 +34,44 @@ class User(AbstractUser):
     def is_password_valid(password):
         # TO DO: implement the method
         pass
+
+    @staticmethod
+    def get_sorted_following_list(requesting_user, following_list):
+        if not following_list:
+            return following_list.copy()
+        def compare_followed_users(user1, user2):
+            requesting_user_follows_user1 = requesting_user.followers.filter(id=user1.id).exists()
+            requesting_user_follows_user2 = requesting_user.followers.filter(id=user2.id).exists()
+
+            if requesting_user_follows_user1 and not requesting_user_follows_user2:
+                return -1
+            if not requesting_user_follows_user1 and requesting_user_follows_user2:
+                return 1
+
+            user1_is_premium = user1.profile.is_premium()
+            user2_is_premium = user2.profile.is_premium()
+
+            if user1_is_premium and not user2_is_premium:
+                return -1
+            if not user1_is_premium and user2_is_premium:
+                return 1
+
+            user1_follower_num = user1.followers.count()
+            user2_follower_num = user2.followers.count()
+
+            if user1_follower_num > user2_follower_num:
+                return -1
+            if user2_follower_num > user1_follower_num:
+                return 1
+
+            return 0
+
+        return sorted(following_list, key=cmp_to_key(compare_followed_users))
+
+
+
+
+
 
 class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
@@ -65,6 +104,10 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.name
+
+    def is_premium(self):
+        PREMIMUM = "premium"
+        return self.user.groups.filter(name=PREMIMUM).exists()
 
 class UserCustomization(models.Model):
     THEME_CHOICES = [
@@ -109,10 +152,6 @@ class UserCustomization(models.Model):
                                     , verbose_name="Font Size")
     font_colour = models.CharField(max_length=50, choices=FONT_COLOUR_CHOICES, default=DEFAULT_FONT_COLOUR
                                    , verbose_name="Font Colour")
-
-    def is_premium(self):
-        # TO DO: check if the user belongs to the group of premium users
-        pass
 
     def __str__(self):
         return self.user.name

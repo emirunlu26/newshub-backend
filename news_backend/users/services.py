@@ -3,7 +3,8 @@ It contains all service functions to handle requests related to users
 Service functions implement the business logic.
 """
 from django.contrib.auth import login
-from .models import User
+from models import User
+import serializers
 
 def register_user(register_data):
     """Service function that registers an user"""
@@ -75,4 +76,39 @@ def register_user(register_data):
         "user_id": new_user.id,
         "redirect_url": ""
     }, 201
+
+def view_following_list(requesting_user_id, target_user_id):
+    requesting_user = User.objects.filter(id=requesting_user_id).first()
+    if requesting_user is None:
+        return {
+            "message": {
+                "content": "Requesting user with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
+    target_user = User.objects.filter(id=target_user_id).first()
+    if target_user is None:
+        return {
+            "message": {
+                "content": "Target user with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
+    following_list = target_user.following_list.all()
+    sorted_following_list = User.get_sorted_following_list(requesting_user=requesting_user,
+                                                           following_list=following_list)
+    sorted_following_list = [serializers.serialize_user(user) for user in sorted_following_list]
+    following_count = len(sorted_following_list)
+
+    return {
+        "message": {
+            "content": "",
+            "type": "success"
+        },
+        "following_count": following_count,
+        "following_list": sorted_following_list
+    }, 200
+
 

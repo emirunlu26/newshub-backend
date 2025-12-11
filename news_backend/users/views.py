@@ -82,7 +82,7 @@ def login_user(request):
                 "content": "POST request required.",
                 "type": "error"
             }
-        }, status=400)
+        }, status=405)
 
 
 
@@ -108,7 +108,16 @@ def view_profile_picture(request, user_id):
 @login_required(login_url="users:login")
 def view_following_list(request, user_id):
     """View function that returns the list of users which is followed by a specific user"""
-    pass
+    if request.method == "GET":
+        response, status = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
+        return JsonResponse(data=response, status=status)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def view_follower_list(request, user_id):

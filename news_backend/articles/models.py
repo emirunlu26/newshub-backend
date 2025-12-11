@@ -34,7 +34,7 @@ class Tag(models.Model):
 class Region(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="Name")
     slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
-    belongs_to = models.ManyToManyField(to="articles.Region", related_name="belonging_regions", blank=True
+    belongs_to = models.ManyToManyField(to="self", symmetrical=False, related_name="belonging_regions", blank=True
                                         , null=True, verbose_name="Belongs To")
 
     def __str__(self):
