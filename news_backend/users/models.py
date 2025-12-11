@@ -77,7 +77,8 @@ class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
     slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
     about = models.TextField(verbose_name="About")
-    profile_image = models.FileField(blank=True, null=True, verbose_name="Profile Image")
+    profile_image = models.ImageField(upload_to="author_profile_images/", blank=True, null=True
+                                      , verbose_name="Profile Image")
     articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="authors",
                                       verbose_name="Written Articles")
 
@@ -92,7 +93,7 @@ class Editor(models.Model):
 
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
     slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
-    profile_image = models.FileField(verbose_name="Profile Image")
+    profile_image = models.ImageField(upload_to="editor_profile_images/", verbose_name="Profile Image")
     role = models.CharField(max_length=50, choices=ROLE_CHOICES, verbose_name="Editor Role")
 
     def __str__(self):
@@ -101,7 +102,7 @@ class Editor(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name="profile")
     biography = models.TextField(blank=True, verbose_name="Biography")
-    avatar = models.FileField(blank=True, null=True, verbose_name="Profile Picture")
+    avatar = models.ImageField(upload_to="user_avatars/", blank=True, null=True, verbose_name="Profile Picture")
 
     def __str__(self):
         return self.user.name

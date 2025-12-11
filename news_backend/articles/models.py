@@ -78,7 +78,7 @@ class Article(models.Model):
                                          , verbose_name="Priority Level")
     status = models.CharField(max_length=50, choices=ARTICLE_STATUS_CHOICES
                               , default=DEFAULT_ARTICLE_STATUS, verbose_name="Status")
-    cover_image = models.FileField(verbose_name="Cover Image")
+    cover_image = models.ImageField(verbose_name="Cover Image")
     requires_premium = models.BooleanField(default=False, verbose_name="Requires Premium")
     tags = models.ManyToManyField(to=Tag, blank=True, verbose_name="Tag")
     categories = models.ManyToManyField(to=Category, verbose_name="Category")

@@ -1,5 +1,3 @@
-from models import User
-
 def serialize_user(user):
     return {
         "id": user.id,

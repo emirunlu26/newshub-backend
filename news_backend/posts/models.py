@@ -4,7 +4,7 @@ from django.db import models
 
 class Reaction(models.Model):
     name = models.CharField(max_length=50, unique=True, verbose_name="Name")
-    icon = models.FileField(verbose_name="Icon")
+    icon = models.ImageField(upload_to="reaction_icons/", verbose_name="Icon")
 
     def __str__(self):
         return self.name
@@ -24,7 +24,7 @@ class Post(models.Model):
 
 class PostImage(models.Model):
     post = models.ForeignKey(to=Post, on_delete=models.CASCADE, verbose_name="Post")
-    image = models.FileField(verbose_name="Image")
+    image = models.ImageField(upload_to="post_images/", verbose_name="Image")
 
 class Comment(models.Model):
     owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="comments", verbose_name="Owner")
