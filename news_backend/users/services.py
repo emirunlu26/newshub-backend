@@ -97,18 +97,52 @@ def view_following_list(requesting_user_id, target_user_id):
         }, 404
 
     following_list = target_user.following_list.all()
-    sorted_following_list = User.get_sorted_following_list(requesting_user=requesting_user,
-                                                           following_list=following_list)
+    sorted_following_list = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
+                                                                       , following_or_follower_list=following_list)
     sorted_following_list = [serializers.serialize_user(user) for user in sorted_following_list]
     following_count = len(sorted_following_list)
 
     return {
         "message": {
-            "content": "",
+            "content": "The list of followed users is retrieved successfully.",
             "type": "success"
         },
         "following_count": following_count,
         "following_list": sorted_following_list
+    }, 200
+
+def view_follower_list(requesting_user_id, target_user_id):
+    requesting_user = User.objects.filter(id=requesting_user_id).first()
+    if requesting_user is None:
+        return {
+            "message": {
+                "content": "Requesting user with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
+    target_user = User.objects.filter(id=target_user_id).first()
+    if target_user is None:
+        return {
+            "message": {
+                "content": "Target user with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
+    followers = target_user.followers.all()
+    sorted_followers = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
+                                                                       , following_or_follower_list=followers)
+    sorted_followers = [serializers.serialize_user(user) for user in sorted_followers]
+    follower_count = len(sorted_followers)
+
+    return {
+        "message": {
+            "content": "The list of followers is retrieved successfully.",
+            "type": "success"
+        },
+        "follower_count": follower_count,
+        "followers": sorted_followers
     }, 200
 
 

@@ -36,9 +36,9 @@ class User(AbstractUser):
         pass
 
     @staticmethod
-    def get_sorted_following_list(requesting_user, following_list):
-        if not following_list:
-            return following_list.copy()
+    def get_sorted_following_or_follower_list(requesting_user, following_or_follower_list):
+        if not following_or_follower_list:
+            return following_or_follower_list.copy()
         def compare_followed_users(user1, user2):
             requesting_user_follows_user1 = requesting_user.followers.filter(id=user1.id).exists()
             requesting_user_follows_user2 = requesting_user.followers.filter(id=user2.id).exists()
@@ -66,7 +66,7 @@ class User(AbstractUser):
 
             return 0
 
-        return sorted(following_list, key=cmp_to_key(compare_followed_users))
+        return sorted(following_or_follower_list, key=cmp_to_key(compare_followed_users))
 
 
 
