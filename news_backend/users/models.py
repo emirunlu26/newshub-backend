@@ -77,8 +77,9 @@ class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
     slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")
     about = models.TextField(verbose_name="About")
-    profile_image = models.FileField(verbose_name="Profile Image")
-    articles = models.ManyToManyField(to="articles.Article", blank=True, verbose_name="Written Articles")
+    profile_image = models.FileField(blank=True, null=True, verbose_name="Profile Image")
+    articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="authors",
+                                      verbose_name="Written Articles")
 
     def __str__(self):
         return self.user.name

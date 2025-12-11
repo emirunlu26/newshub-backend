@@ -164,7 +164,16 @@ def view_followed_categories(request):
 @login_required(login_url="users:login")
 def view_bookmarked_articles(request):
     """View function that returns the list of articles which is bookmarked by the requesting user"""
-    pass
+    if request.method == "GET":
+        response, status = services.view_bookmarked_articles(requesting_user_id=request.user.id)
+        return JsonResponse(data=response, status=status)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def view_profile_settings(request):

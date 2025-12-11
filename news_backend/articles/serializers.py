@@ -1,3 +1,14 @@
+from users.serializers import serialize_author
+def serialize_article_teaser(article):
+    return {
+        "id": article.id,
+        "slug": article.slug,
+        "type": article.type,
+        "title": article.title,
+        "authors": [serialize_author(author) for author in article.authors],
+        "summary": article.summary
+    }
+
 def serialize_tag(tag):
     return {
         "id": tag.id,

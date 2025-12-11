@@ -191,4 +191,28 @@ def view_followed_categories(requesting_user_id):
         "followed_categories": sorted_followed_categories
     }, 200
 
+def view_bookmarked_articles(requesting_user_id):
+    requesting_user = User.objects.filter(id=requesting_user_id).first()
+    if requesting_user is None:
+        return {
+            "message": {
+                "content": "Requesting user with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
+    bookmarked_articles = requesting_user.bookmarked_articles.all()
+    sorted_bookmarked_articles =
+    sorted_bookmarked_articles = [article_serializers.serialize_article_teaser(article)
+                                  for article in sorted_bookmarked_articles]
+
+    return {
+        "message": {
+            "content": "The list of bookmarked articles is retrieved successfully.",
+            "type": "success"
+        },
+        "bookmarked_articles": sorted_bookmarked_articles
+    }, 200
+
+
 
