@@ -1,6 +1,10 @@
 """View file that contains all view functions to handle requests related to articles"""
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
+from django.http import JsonResponse
+from . models import Article
+import json
 
 # Create your views here.
 
@@ -17,35 +21,138 @@ def update_or_delete_article(request, id):
 
 @login_required(login_url="users:login")
 def get_articles_by_type(request, type):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_article_by_slug_and_id_with_type(request, type, slug, id):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_article_by_slug_and_id_without_type(request, slug, id):
-    pass
+    if request.method == "GET":
+        try:
+            register_data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON.",
+                    "type": "error"
+                }
+            }, status=400)
+        article = Article.objects.filter(id=id, slug=slug).first()
+        if article is None:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Article not found, id and/or slug does not match.",
+                    "type": "error"
+                }
+            }, status=404)
+        else:
+            return redirect(
+                to="get-article-by-slug-and-id-with-type",
+                type=article.type,
+                slug=slug,
+                id=id
+            )
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_article_by_region(request, region):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_article_by_parent_category(request, slug):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_article_by_sub_category(request, parent_slug, sub_slug):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_article_by_tag(request, slug):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_author_by_slug_and_id(request, slug, id):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def get_my_news(request):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def get_trending_articles(request):
-    pass
+    if request.method == "GET":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def follow_or_unfollow_tag(request, slug):
