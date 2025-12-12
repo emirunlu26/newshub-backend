@@ -156,8 +156,7 @@ def view_followed_tags(requesting_user_id):
             }
         }, 404
 
-    followed_tags = requesting_user.followed_tags.all()
-    sorted_followed_tags = sorted(followed_tags, key=lambda tag: tag.name)
+    sorted_followed_tags = requesting_user.get_sorted_followed_tags()
     sorted_followed_tags = [article_serializers.serialize_tag(tag) for tag in sorted_followed_tags]
 
     return {
@@ -178,8 +177,7 @@ def view_followed_categories(requesting_user_id):
             }
         }, 404
 
-    followed_categories = requesting_user.followed_categories.all()
-    sorted_followed_categories = sorted(followed_categories, key=lambda category: category.name)
+    sorted_followed_categories = requesting_user.get_sorted_followed_categories()
     sorted_followed_categories = [article_serializers.serialize_category(category)
                                   for category in sorted_followed_categories]
 
