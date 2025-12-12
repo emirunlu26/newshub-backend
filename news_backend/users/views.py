@@ -99,11 +99,20 @@ def logout_user(request):
 
 def view_profile(request, user_id):
     """View function that returns information about the profile of a specific user"""
-    pass
+    if request.
 
 def view_profile_picture(request, user_id):
     """View function that returns the profile picture of a specific user"""
-    pass
+    if request.method == "GET":
+        response, status = services.view_profile_picture(user_id)
+        return JsonResponse(data=response, status=status)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def view_following_list(request, user_id):

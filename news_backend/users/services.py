@@ -318,3 +318,17 @@ def unfollow_user(requesting_user_id, target_user_id):
             }
         }, 200
 
+def view_profile_picture(target_user_id):
+    response, status = get_user_by_id(target_user_id, user_type="Target")
+    if not response["user"]:
+        return response, status
+
+    target_user = response["user"]
+    avatar = target_user.profile.avatar
+    return {
+        "message": {
+            "content": "Profile picture is retrieved successfully.",
+            "type": "success"
+        },
+        "profile_picture_url": avatar.url if avatar else None
+    }, 200
