@@ -188,7 +188,19 @@ def view_update_ui_customization_settings(request):
 @login_required(login_url="users:login")
 def subscribe_or_unsubscribe(request):
     """View function that handles the request about subscription/unsubscription of the requesting user"""
-    pass
+    if request.method == "POST":
+        response, status = services.subscribe_user(request.user.id)
+    elif request.method == "DELETE":
+        response, status = services.unsubscribe_user(request.user.id)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "POST or DELETE request required.",
+                "type": "error"
+            }
+        }, status=405)
+    return JsonResponse(data=response, status=status)
+
 
 @login_required(login_url="users:login")
 def follow_or_unfollow(request, user_id):

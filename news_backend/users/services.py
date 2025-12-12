@@ -4,8 +4,29 @@ Service functions implement the business logic.
 """
 from django.contrib.auth import login
 from .models import User, UserProfile
+from django.contrib.auth.models import Group
 import users.serializers as user_serializers
 from articles import serializers as article_serializers
+
+def get_user_by_id(id):
+    user = User.objects.filter(id=id).first()
+    if user:
+        return {
+            "message": {
+                "content": "User is retrieved successfully.",
+                "type": "success"
+            },
+            "user": user
+        }, 200
+    else:
+        return user, {
+            "message": {
+                "content": "User with the given id is not found.",
+                "type": "error"
+            },
+            "user": None
+        }, 404
+
 
 def register_user(register_data):
     """Service function that registers an user"""
@@ -84,24 +105,17 @@ def create_profile_for_new_user(user):
     user_profile.save()
 
 def view_following_list(requesting_user_id, target_user_id):
-    requesting_user = User.objects.filter(id=requesting_user_id).first()
-    if requesting_user is None:
-        return {
-            "message": {
-                "content": "Requesting user with the given id is not found.",
-                "type": "error"
-            }
-        }, 404
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
 
-    target_user = User.objects.filter(id=target_user_id).first()
-    if target_user is None:
-        return {
-            "message": {
-                "content": "Target user with the given id is not found.",
-                "type": "error"
-            }
-        }, 404
+    requesting_user = response["user"]
 
+    response, status = get_user_by_id(target_user_id)
+    if not response["user"]:
+        return response, status
+
+    target_user = response["user"]
     following_list = target_user.following_list.all()
     sorted_following_list = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
                                                                        , following_or_follower_list=following_list)
@@ -118,24 +132,17 @@ def view_following_list(requesting_user_id, target_user_id):
     }, 200
 
 def view_follower_list(requesting_user_id, target_user_id):
-    requesting_user = User.objects.filter(id=requesting_user_id).first()
-    if requesting_user is None:
-        return {
-            "message": {
-                "content": "Requesting user with the given id is not found.",
-                "type": "error"
-            }
-        }, 404
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
 
-    target_user = User.objects.filter(id=target_user_id).first()
-    if target_user is None:
-        return {
-            "message": {
-                "content": "Target user with the given id is not found.",
-                "type": "error"
-            }
-        }, 404
+    requesting_user = response["user"]
 
+    response, status = get_user_by_id(target_user_id)
+    if not response["user"]:
+        return response, status
+
+    target_user = response["user"]
     followers = target_user.followers.all()
     sorted_followers = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
                                                                        , following_or_follower_list=followers)
@@ -152,15 +159,11 @@ def view_follower_list(requesting_user_id, target_user_id):
     }, 200
 
 def view_followed_tags(requesting_user_id):
-    requesting_user = User.objects.filter(id=requesting_user_id).first()
-    if requesting_user is None:
-        return {
-            "message": {
-                "content": "Requesting user with the given id is not found.",
-                "type": "error"
-            }
-        }, 404
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
 
+    requesting_user = response["user"]
     sorted_followed_tags = requesting_user.get_sorted_followed_tags()
     sorted_followed_tags = [article_serializers.serialize_tag(tag) for tag in sorted_followed_tags]
 
@@ -173,15 +176,11 @@ def view_followed_tags(requesting_user_id):
     }, 200
 
 def view_followed_categories(requesting_user_id):
-    requesting_user = User.objects.filter(id=requesting_user_id).first()
-    if requesting_user is None:
-        return {
-            "message": {
-                "content": "Requesting user with the given id is not found.",
-                "type": "error"
-            }
-        }, 404
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
 
+    requesting_user = response["user"]
     sorted_followed_categories = requesting_user.get_sorted_followed_categories()
     sorted_followed_categories = [article_serializers.serialize_category(category)
                                   for category in sorted_followed_categories]
@@ -195,15 +194,11 @@ def view_followed_categories(requesting_user_id):
     }, 200
 
 def view_bookmarked_articles(requesting_user_id):
-    requesting_user = User.objects.filter(id=requesting_user_id).first()
-    if requesting_user is None:
-        return {
-            "message": {
-                "content": "Requesting user with the given id is not found.",
-                "type": "error"
-            }
-        }, 404
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
 
+    requesting_user = response["user"]
     sorted_bookmarked_articles = requesting_user.get_sorted_bookmarked_articles()
     sorted_bookmarked_articles = [article_serializers.serialize_article_teaser(article)
                                   for article in sorted_bookmarked_articles]
@@ -216,5 +211,53 @@ def view_bookmarked_articles(requesting_user_id):
         "bookmarked_articles": sorted_bookmarked_articles
     }, 200
 
+def subscribe_user(requesting_user_id):
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
+
+    requesting_user = response["user"]
+    if requesting_user.profile.is_premium():
+        return {
+            "message": {
+                "content": "Your account has already been premium.",
+                "type": "warning"
+            }
+        }, 200
+
+    premium_group = Group.objects.get_or_create(name="premium")
+    requesting_user.groups.add(premium_group)
+    return {
+        "message": {
+            "content": "Your account is upgraded to premium successfully.",
+            "type": "success"
+        },
+        "redirect_url": ""
+    }, 200
+
+
+def unsubscribe_user(requesting_user_id):
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
+
+    requesting_user = response["user"]
+    if not requesting_user.profile.is_premium():
+        return {
+            "message": {
+                "content": "Your account has already been not premium.",
+                "type": "warning"
+            }
+        }, 200
+
+    premium_group = Group.objects.get_or_create(name="premium")
+    requesting_user.groups.remove(premium_group)
+    return {
+        "message": {
+            "content": "Your subscription has been terminated successfully.",
+            "type": "success"
+        },
+        "redirect_url": ""
+    }, 200
 
 
