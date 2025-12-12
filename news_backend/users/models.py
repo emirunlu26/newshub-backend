@@ -145,8 +145,8 @@ class UserProfile(models.Model):
         return self.user.name
 
     def is_premium(self):
-        PREMIMUM = "premium"
-        return self.user.groups.filter(name=PREMIMUM).exists()
+        PREMIUM = "premium"
+        return self.user.groups.filter(name=PREMIUM).exists()
 
 class UserCustomization(models.Model):
     THEME_CHOICES = [
@@ -182,7 +182,6 @@ class UserCustomization(models.Model):
                 message=f"Font size out of range(min:{MIN_FONT_SIZE}, max:{MAX_FONT_SIZE})"
             )
 
-
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name="customization")
     theme = models.CharField(max_length=50, choices=THEME_CHOICES, default=DEFAULT_THEME, verbose_name="Theme")
     font_type = models.CharField(max_length=50, choices=FONT_CHOICES, default=DEFAULT_FONT_TYPE
@@ -191,6 +190,34 @@ class UserCustomization(models.Model):
                                     , verbose_name="Font Size")
     font_colour = models.CharField(max_length=50, choices=FONT_COLOUR_CHOICES, default=DEFAULT_FONT_COLOUR
                                    , verbose_name="Font Colour")
+
+    @staticmethod
+    def is_theme_valid(theme):
+        VALUE_INDEX = 0
+        valid_themes = [theme_choice[VALUE_INDEX] for theme_choice in UserCustomization.THEME_CHOICES]
+        return theme in valid_themes
+
+    @staticmethod
+    def is_font_type_valid(font_type):
+        VALUE_INDEX = 0
+        valid_font_types = [font_type_choice[VALUE_INDEX] for font_type_choice in UserCustomization.FONT_CHOICES]
+        return font_type in valid_font_types
+
+    @staticmethod
+    def is_font_size_valid(font_size_str):
+        if not font_size_str.isdigit():
+            return False
+        font_size = int(font_size_str)
+        MIN_FONT_SIZE = 1
+        MAX_FONT_SIZE = 72
+        return (font_size >= MIN_FONT_SIZE and font_size <= MAX_FONT_SIZE)
+    @staticmethod
+    def is_font_colour_valid(font_colour):
+        VALUE_INDEX = 0
+        valid_font_colours = [
+            font_colour_choice[VALUE_INDEX] for font_colour_choice in UserCustomization.FONT_COLOUR_CHOICES
+        ]
+        return font_colour in valid_font_colours
 
     def __str__(self):
         return self.user.name

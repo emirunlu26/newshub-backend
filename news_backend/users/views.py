@@ -213,7 +213,28 @@ def view_update_profile_settings(request):
 @login_required(login_url="users:login")
 def view_update_ui_customization_settings(request):
     """View function that either returns or updates the user interface customization settings of the requesting user"""
-    pass
+    if request.method == "GET":
+        response, status = services.view_ui_customization_settings(request.user.id)
+    elif request.method == "PUT":
+        try:
+            update_data = json.loads(request.body)
+        except:
+            return JsonResponse(data=
+            {
+                "message": {
+                    "content": "Invalid JSON.",
+                    "type": "error"
+                }
+            }, status=400)
+        response, status = services.update_ui_customization_settings(request.user.id, update_data)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET or PUT request required.",
+                "type": "error"
+            }
+        }, status=405)
+    return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
 def subscribe_or_unsubscribe(request):

@@ -3,7 +3,7 @@ It contains all service functions to handle requests related to users
 Service functions implement the business logic.
 """
 from django.contrib.auth import login
-from .models import User, UserProfile
+from .models import User, UserProfile, UserCustomization
 from django.contrib.auth.models import Group
 import users.serializers as user_serializers
 from articles import serializers as article_serializers
@@ -352,15 +352,7 @@ def view_profile_settings(user_id):
     return {
         "message": "Profile settings are retrieved successfully.",
         "type": "success",
-        "profile_settings": {
-            "username": user.username,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "birth_date": user.birth_date.strftime(settings.DATE_INPUT_FORMATS[0]),
-            "gender": user.gender,
-            "profile_bio": profile.bio,
-            "avatar": profile.avatar.url if profile.avatar else None
-        }
+        "profile_settings": user_serializers.serialize_user_profile(profile)
     }, 200
 
 def update_profile_settings(user_id, update_data):
@@ -435,15 +427,88 @@ def update_profile_settings(user_id, update_data):
     return {
         "message": {
             "content": "Profile settings are updated successfully.",
-            "type": "error"
+            "type": "success"
         },
-        "profile_settings": {
-            "username": user.username,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "birth_date": user.birth_date.strftime(settings.DATE_INPUT_FORMATS[0]),
-            "gender": user.gender,
-            "profile_bio": profile.bio,
-            "avatar": profile.avatar.url if profile.avatar else None
-        }
+        "profile_settings": user_serializers.serialize_user_profile(profile)
+    }, 200
+
+def view_ui_customization_settings(user_id):
+    response, status = get_user_by_id(user_id)
+    if not response["user"]:
+        return response, status
+
+    user = response["user"]
+    ui_customization_json = user_serializers.serialize_ui_customization(user.customization)
+    return {
+        "message": {
+            "content": "UI customization setting is retrieved successfully.",
+            "type": "success"
+        },
+        "customization": ui_customization_json
+    }, 200
+
+def update_ui_customization_settings(user_id, update_data):
+    response, status = get_user_by_id(user_id)
+    if not response["user"]:
+        return response, status
+
+    user = response["user"]
+    customization = user.customization
+
+    theme = update_data.get("theme")
+    font_type = update_data.get("font_type")
+    font_size_str = update_data.get("font_size")
+    font_colour = update_data.get("font_colour")
+
+    if theme and theme != customization.theme:
+        if UserCustomization.is_theme_valid(theme):
+            customization.theme = theme
+            customization.save()
+        else:
+            return {
+                "message": {
+                    "content": "Invalid theme.",
+                    "type": "error"
+                }
+            }, 400
+    if font_type:
+        if UserCustomization.is_font_type_valid(font_type):
+            customization.font_type = font_type
+            customization.save()
+        else:
+            return {
+                "message": {
+                    "content": "Invalid font type.",
+                    "type": "error"
+                }
+            }, 400
+    if font_size_str:
+        if UserCustomization.is_font_size_valid(font_size_str):
+            customization.font_size = int(font_size_str)
+            customization.save()
+        else:
+            return {
+                "message": {
+                    "content": "Invalid font size.",
+                    "type": "error"
+                }
+            }, 400
+    if font_colour:
+        if UserCustomization.is_font_colour_valid(font_colour):
+            customization.font_colour = font_colour
+            customization.save()
+        else:
+            return {
+                "message": {
+                    "content": "Invalid font colour.",
+                    "type": "error"
+                }
+            }, 400
+
+    return {
+        "message": {
+            "content": "UI customization settings are updated successfully.",
+            "type": "success"
+        },
+        "ui_customization": user_serializers.serialize_ui_customization(customization)
     }, 200
