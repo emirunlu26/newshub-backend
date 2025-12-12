@@ -14,11 +14,12 @@ class User(AbstractUser):
     ]
     DEFAULT_GENDER_CHOICE = "u"
     country = models.CharField(max_length=100, blank=False, null=True, verbose_name="Ülke Konumu")
-    birth_date = models.DateField(auto_now=False, auto_now_add=False, null=True, verbose_name="Date of Birth")
+    birth_date = models.DateField(null=True, verbose_name="Date of Birth")
     gender = models.CharField(max_length=1, default=DEFAULT_GENDER_CHOICE, choices=GENDER_CHOICES
                               , verbose_name="Gender")
     followers = models.ManyToManyField(to="self", symmetrical=False, blank=True, related_name="following_list")
-    bookmarked_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="bookmarked_by")
+    bookmarked_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="bookmarked_by"
+                                                 , through="articles.ArticleBookmark")
     viewed_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="viewed_by"
                                              , through="articles.ArticleView")
     followed_categories = models.ManyToManyField(to="articles.Category", blank=True)

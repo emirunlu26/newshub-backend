@@ -68,8 +68,8 @@ class Article(models.Model):
 
     type = models.CharField(max_length=50, choices=ARTICLE_TYPE_CHOICES, verbose_name="Article Type")
     slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
-    created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Writing Time")
-    published_at = models.DateTimeField(auto_now=False, auto_created=False, verbose_name="Publication Time")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Writing Time")
+    published_at = models.DateTimeField(verbose_name="Publication Time")
     editors = models.ManyToManyField(to="users.Editor", verbose_name="Editor")
     title = models.CharField(max_length=255, verbose_name="Title")
     content = RichTextField()
@@ -90,8 +90,13 @@ class Article(models.Model):
 class ArticleView(models.Model):
     user = models.ForeignKey(to="users.User", on_delete=models.CASCADE, verbose_name="Viewing User")
     article = models.ForeignKey(to=Article, on_delete= models.CASCADE, verbose_name="Viewed Article")
-    time = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="View Time")
+    time = models.DateTimeField(auto_now_add=True, verbose_name="View Time")
     duration_seconds = models.IntegerField(verbose_name="View Duration In Seconds")
+
+class  ArticleBookmark(models.Model):
+    user = models.ForeignKey(to="users.User", on_delete=models.CASCADE, verbose_name="Bookmarking User")
+    article = models.ForeignKey(to=Article, on_delete=models.CASCADE, verbose_name="Bookmarked Article")
+    time = models.DateTimeField(auto_now_add=True, verbose_name="Bookmark Time")
 
 class ArticleReaction(models.Model):
     article = models.ForeignKey(to=Article, on_delete=models.CASCADE, related_name="reactions"
@@ -118,9 +123,9 @@ class EditTask(models.Model):
     description = models.TextField(verbose_name="Task Description")
     edited_article = models.ForeignKey(to=Article,on_delete=models.CASCADE, related_name="edit_tasks"
                                        , verbose_name="Edited Article")
-    created_at = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="Edit Creation Time")
-    deadline = models.DateField(auto_now=False, auto_now_add=False, verbose_name="Deadline")
-    completed_at = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="Completion Time")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Edit Creation Time")
+    deadline = models.DateField(verbose_name="Deadline")
+    completed_at = models.DateTimeField(verbose_name="Completion Time")
     created_by = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, related_name="created_tasks"
                                    , verbose_name="Task Creator Editor")
     assigned_editor = models.ForeignKey(to="users.Editor", on_delete=models.CASCADE, related_name="assigned_tasks"
