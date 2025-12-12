@@ -3,7 +3,7 @@ It contains all service functions to handle requests related to users
 Service functions implement the business logic.
 """
 from django.contrib.auth import login
-from .models import User
+from .models import User, UserProfile
 import users.serializers as user_serializers
 from articles import serializers as article_serializers
 
@@ -69,6 +69,7 @@ def register_user(register_data):
                                     birth_date=birth_date,
                                     gender=gender)
     new_user.save()
+    create_profile_for_new_user(new_user)
     login(request=request, user=new_user)
     return {
         "message": {
@@ -77,6 +78,10 @@ def register_user(register_data):
         "user_id": new_user.id,
         "redirect_url": ""
     }, 201
+
+def create_profile_for_new_user(user):
+    user_profile = UserProfile.objects.create(user=user)
+    user_profile.save()
 
 def view_following_list(requesting_user_id, target_user_id):
     requesting_user = User.objects.filter(id=requesting_user_id).first()
