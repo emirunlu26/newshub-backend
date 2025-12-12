@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from functools import cmp_to_key
+from articles.models import ArticleBookmark
 
 # Create your models here.
 
@@ -74,6 +75,15 @@ class User(AbstractUser):
 
     def get_sorted_followed_categories(self):
         return self.followed_categories.order_by("name")
+
+    def get_sorted_bookmarked_articles(self, newest_first=True):
+        TIME_ORDER = "-time" if newest_first else "time"
+        sorted_bookmarks = (ArticleBookmark.objects
+                            .filter(user=self)
+                            .select_related("article")
+                            .order_by(TIME_ORDER))
+        return [bookmark.article for bookmark in sorted_bookmarks]
+
 
 
 

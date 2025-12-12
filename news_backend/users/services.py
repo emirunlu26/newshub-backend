@@ -199,8 +199,7 @@ def view_bookmarked_articles(requesting_user_id):
             }
         }, 404
 
-    bookmarked_articles = requesting_user.bookmarked_articles.all()
-    sorted_bookmarked_articles = [] # TO DO: Implement algorithm to sort articles (sort for all or only bookmarked ?)
+    sorted_bookmarked_articles = requesting_user.get_sorted_bookmarked_articles()
     sorted_bookmarked_articles = [article_serializers.serialize_article_teaser(article)
                                   for article in sorted_bookmarked_articles]
 
