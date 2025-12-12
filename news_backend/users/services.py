@@ -105,7 +105,7 @@ def view_following_list(requesting_user_id, target_user_id):
     following_list = target_user.following_list.all()
     sorted_following_list = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
                                                                        , following_or_follower_list=following_list)
-    sorted_following_list = [user_serializers.serialize_user(user) for user in sorted_following_list]
+    sorted_following_list = [user_serializers.serialize_user_teaser(user) for user in sorted_following_list]
     following_count = len(sorted_following_list)
 
     return {
@@ -139,7 +139,7 @@ def view_follower_list(requesting_user_id, target_user_id):
     followers = target_user.followers.all()
     sorted_followers = User.get_sorted_following_or_follower_list(requesting_user=requesting_user
                                                                        , following_or_follower_list=followers)
-    sorted_followers = [user_serializers.serialize_user(user) for user in sorted_followers]
+    sorted_followers = [user_serializers.serialize_user_teaser(user) for user in sorted_followers]
     follower_count = len(sorted_followers)
 
     return {

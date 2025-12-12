@@ -1,10 +1,10 @@
-def serialize_user(user):
+def serialize_user_teaser(user):
     return {
         "id": user.id,
         "username": user.username,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "profile_bio": user.profile.bio
+        "profile_bio": user.profile.bio,
     }
 
 def serialize_author(author):
