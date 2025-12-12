@@ -7,6 +7,8 @@ from .models import User, UserProfile
 from django.contrib.auth.models import Group
 import users.serializers as user_serializers
 from articles import serializers as article_serializers
+from news_backend import settings
+from datetime import datetime
 
 def get_user_by_id(id, user_type="Requesting"):
     user = User.objects.filter(id=id).first()
@@ -41,7 +43,7 @@ def register_user(register_data):
     last_name = register_data.get("last_name")
     email = register_data.get("email")
     country = register_data.get("country")
-    birth_date = register_data.get("birth_date")
+    birth_date_str = register_data.get("birth_date")
 
     # Get optional fields
     gender = register_data.get("gender")
@@ -61,7 +63,7 @@ def register_user(register_data):
         return {"message": {"content": "Email field can not be empty.", "type": "error"}}, 400
     if country is None:
         return {"message": {"content": "Location field can not be empty.", "type": "error"}}, 400
-    if birth_date is None:
+    if birth_date_str is None:
         return {"message": {"content": "Birth date field can not be empty.", "type": "error"}}, 400
 
     # Check if username and email are unique:
@@ -80,6 +82,13 @@ def register_user(register_data):
     if password != password_repeat:
         return {"message": {"content": "Repeated password is different.", "type": "error"}}, 400
 
+    if not User.is_birth_date_valid(birth_date_str):
+        return {"message":
+                    {"content": f"Invalid birth date. Accepted format is: {settings.DATE_INPUT_FORMATS[0]}",
+                     "type": "error"
+                     }
+                }, 400
+
     # Create the user and set the required & optional fields
     new_user = User.objects.create_user(username=username,
                                     password=password,
@@ -87,7 +96,7 @@ def register_user(register_data):
                                     first_name=first_name,
                                     last_name=last_name,
                                     country=country,
-                                    birth_date=birth_date,
+                                    birth_date=datetime.strptime(birth_date_str, settings.DATE_INPUT_FORMATS[0]).date(),
                                     gender=gender)
     new_user.save()
     create_profile_for_new_user(new_user)
@@ -331,4 +340,110 @@ def view_profile_picture(target_user_id):
             "type": "success"
         },
         "profile_picture_url": avatar.url if avatar else None
+    }, 200
+
+def view_profile_settings(user_id):
+    response, status = get_user_by_id(user_id)
+    if not response["user"]:
+        return response, status
+
+    user = response["user"]
+    profile = user.profile
+    return {
+        "message": "Profile settings are retrieved successfully.",
+        "type": "success",
+        "profile_settings": {
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "birth_date": user.birth_date.strftime(settings.DATE_INPUT_FORMATS[0]),
+            "gender": user.gender,
+            "profile_bio": profile.bio,
+            "avatar": profile.avatar.url if profile.avatar else None
+        }
+    }, 200
+
+def update_profile_settings(user_id, update_data):
+    response, status = get_user_by_id(user_id)
+    if not response["user"]:
+        return response, status
+
+    user = response["user"]
+    profile = user.profile
+
+    username = update_data.get("username")
+    first_name = update_data.get("first_name")
+    last_name = update_data.get("last_name")
+    birth_date_str = update_data.get("birth_date")
+    gender = update_data.get("gender")
+    profile_bio = update_data.get("profile_bio")
+
+    if username and user.username != username:
+        if User.objects.filter(username=username).exists():
+            return {
+                "message": {
+                    "content": "This user name is already used by another account.",
+                    "type": "error"
+                }
+            }, 400
+        elif not User.is_username_valid(username):
+            return {
+                "message": {
+                    "content": "Invalid username.",
+                    "type": "error"
+                }
+            }, 400
+        else:
+            user.username = username
+            user.save()
+
+    if first_name and first_name != user.first_name:
+        user.first_name = first_name
+        user.save()
+    if last_name and last_name != user.last_name:
+        user.last_name = last_name
+        user.save()
+    if birth_date_str:
+        if User.is_birth_date_valid(birth_date_str):
+            birth_date = datetime.strptime(birth_date_str, settings.DATE_INPUT_FORMATS[0]).date()
+            user.birth_date = birth_date
+            user.save()
+        else:
+            return {
+                "message": {
+                    "content": f"Invalid birth date. Accepted format is: {settings.DATE_INPUT_FORMATS[0]}",
+                    "type": "error"
+                }
+            }, 400
+
+    if gender and gender != user.gender:
+        if User.is_gender_valid(gender):
+            user.gender = gender
+            user.save()
+        else:
+            return {
+                "message": {
+                    "content": "Invalid gender.",
+                    "type": "error"
+                }
+            }, 400
+
+    if profile_bio and profile_bio != profile_bio:
+        profile.bio = profile_bio
+        profile.save()
+
+    return {
+        "message": {
+            "content": "Profile settings are updated successfully.",
+            "type": "error"
+        },
+        "profile_settings": {
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "birth_date": user.birth_date.strftime(settings.DATE_INPUT_FORMATS[0]),
+            "gender": user.gender,
+            "profile_bio": profile.bio,
+            "avatar": profile.avatar.url if profile.avatar else None
+        }
     }, 200

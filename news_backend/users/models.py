@@ -2,7 +2,9 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractUser
 from functools import cmp_to_key
+from datetime import datetime
 from articles.models import ArticleBookmark
+from news_backend import settings
 
 # Create your models here.
 
@@ -31,11 +33,24 @@ class User(AbstractUser):
         # TO DO: implement the method
         pass
 
-
     @staticmethod
     def is_password_valid(password):
         # TO DO: implement the method
         pass
+
+    @staticmethod
+    def is_gender_valid(gender):
+        VALUE_INDEX = 0
+        valid_genders = [choice[VALUE_INDEX] for choice in User.GENDER_CHOICES]
+        return gender in valid_genders
+
+    @staticmethod
+    def is_birth_date_valid(birth_date_str):
+        try:
+            datetime.strptime(birth_date_str, settings.DATE_INPUT_FORMATS[0])
+            return True
+        except ValueError:
+            return False
 
     @staticmethod
     def get_sorted_following_or_follower_list(requesting_user, following_or_follower_list):

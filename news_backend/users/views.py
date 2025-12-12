@@ -99,7 +99,7 @@ def logout_user(request):
 
 def view_profile(request, user_id):
     """View function that returns information about the profile of a specific user"""
-    if request.
+    pass
 
 def view_profile_picture(request, user_id):
     """View function that returns the profile picture of a specific user"""
@@ -185,9 +185,30 @@ def view_bookmarked_articles(request):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_profile_settings(request):
-    """View function that returns the information about profile settings of the requesting user"""
-    pass
+def view_update_profile_settings(request):
+    """View function that either returns or updates the profile settings of the requesting user"""
+    if request.method == "GET":
+        response, status = services.view_profile_settings(request.user.id)
+    elif request.method == "PUT":
+        try:
+            update_data = json.loads(request.body)
+        except:
+            return JsonResponse(data=
+            {
+                "message": {
+                    "content": "Invalid JSON.",
+                    "type": "error"
+                }
+            }, status=400)
+        response, status = services.update_profile_settings(request.user.id, update_data)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET or PUT request required.",
+                "type": "error"
+            }
+        }, status=405)
+    return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
 def view_update_ui_customization_settings(request):

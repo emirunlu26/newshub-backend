@@ -20,7 +20,7 @@ urlpatterns = [
     path("profile/my-tags/", views.view_followed_tags, name="view-followed-tags"),
     path("profile/my-categories/", views.view_followed_categories, name="view-followed-categories"),
     path("profile/my-bookmarked-articles/", views.view_bookmarked_articles, name="view-bookmarked-articles"),
-    path("settings/profile/", views.view_profile_settings, name="view-profile-settings"),
+    path("settings/profile/", views.view_update_profile_settings, name="view-update-profile-settings"),
     path("settings/ui-customization/", views.view_update_ui_customization_settings
          , name="view-update-ui-customization-settings"),
     path("subscribe/", views.subscribe_or_unsubscribe, name="subscribe-unsubscribe"),
