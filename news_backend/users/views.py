@@ -203,7 +203,18 @@ def subscribe_or_unsubscribe(request):
 
 
 @login_required(login_url="users:login")
-def follow_or_unfollow(request, user_id):
+def follow_or_unfollow(request, target_user_id):
     """View the function that handles the request about requesting user following/unfollowing a specific user"""
-    pass
+    if request.method == "POST":
+        response, status = services.follow_user(request.user.id, target_user_id)
+    elif request.method == "DELETE":
+        response, status = services.unfollow_user(request.user.id, target_user_id)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "POST or DELETE request required.",
+                "type": "error"
+            }
+        }, status=405)
+    return JsonResponse(data=response, status=status)
 

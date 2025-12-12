@@ -8,12 +8,12 @@ from django.contrib.auth.models import Group
 import users.serializers as user_serializers
 from articles import serializers as article_serializers
 
-def get_user_by_id(id):
+def get_user_by_id(id, user_type="Requesting"):
     user = User.objects.filter(id=id).first()
     if user:
         return {
             "message": {
-                "content": "User is retrieved successfully.",
+                "content": user_type + " " + "user is retrieved successfully.",
                 "type": "success"
             },
             "user": user
@@ -111,7 +111,7 @@ def view_following_list(requesting_user_id, target_user_id):
 
     requesting_user = response["user"]
 
-    response, status = get_user_by_id(target_user_id)
+    response, status = get_user_by_id(target_user_id, user_type="Target")
     if not response["user"]:
         return response, status
 
@@ -138,7 +138,7 @@ def view_follower_list(requesting_user_id, target_user_id):
 
     requesting_user = response["user"]
 
-    response, status = get_user_by_id(target_user_id)
+    response, status = get_user_by_id(target_user_id, user_type="Target")
     if not response["user"]:
         return response, status
 
@@ -260,4 +260,61 @@ def unsubscribe_user(requesting_user_id):
         "redirect_url": ""
     }, 200
 
+def follow_user(requesting_user_id, target_user_id):
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
+
+    requesting_user = response["user"]
+
+    response, status = get_user_by_id(target_user_id, user_type="Target")
+    if not response["user"]:
+        return response, status
+
+    target_user = response["user"]
+    if requesting_user.follows_user(target_user):
+        return {
+            "message": {
+                "content": "You're already following this user.",
+                "type": "warning"
+            }
+        }, 200
+    else:
+        requesting_user.followers.add(target_user)
+        return {
+            "message": {
+                "content": "User is followed successfully.",
+                "type": "success"
+            }
+        }, 200
+
+
+def unfollow_user(requesting_user_id, target_user_id):
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
+
+    requesting_user = response["user"]
+
+    response, status = get_user_by_id(target_user_id, "Target")
+    if not response["user"]:
+        return response, status
+
+    target_user = response["user"]
+    if requesting_user.follows_user(target_user):
+        requesting_user.followers.remove(target_user)
+        return {
+            "message": {
+                "content": "User is unfollowed successfully.",
+                "type": "warning"
+            }
+        }, 200
+    else:
+        requesting_user.followers.add(target_user)
+        return {
+            "message": {
+                "content": "You're not following this user already.",
+                "type": "success"
+            }
+        }, 200
 

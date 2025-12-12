@@ -84,6 +84,11 @@ class User(AbstractUser):
                             .order_by(TIME_ORDER))
         return [bookmark.article for bookmark in sorted_bookmarks]
 
+    def follows_user(self, user):
+        if self == user:
+            return False
+        return user.followers.filter(id=self.id).exists()
+
 
 
 
