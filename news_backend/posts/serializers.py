@@ -61,7 +61,7 @@ def serialize_comment(comment, include_parent=True):
             },
             "post_id": comment.post.id,
             "content": comment.content,
-            "parent_comment": serialize_comment(parent_comment, include_parent=False) if parent_comment else None,
+            "parent_comment": serialize_comment(parent_comment, include_parent=False),
             "created_at": comment.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
             "updated_at": comment.updated_at.strftime(settings.DATE_INPUT_FORMATS[1])
         }
