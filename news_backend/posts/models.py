@@ -25,6 +25,7 @@ class Post(models.Model):
 class PostImage(models.Model):
     post = models.ForeignKey(to=Post, on_delete=models.CASCADE, verbose_name="Post")
     image = models.ImageField(upload_to="post_images/", verbose_name="Image")
+    rank = models.IntegerField(verbose_name="Rank of Image in Post")
 
 class Comment(models.Model):
     owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="comments", verbose_name="Owner")

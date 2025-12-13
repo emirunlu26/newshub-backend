@@ -512,3 +512,32 @@ def update_ui_customization_settings(user_id, update_data):
         },
         "ui_customization": user_serializers.serialize_ui_customization(customization)
     }, 200
+
+def view_profile(requesting_user_id, target_user_id):
+    requesting_user = None
+    if requesting_user_id:
+        response, status = get_user_by_id(target_user_id)
+        if response["user"]:
+            requesting_user = response["user"]
+        else:
+            return response, status
+
+    response, status = get_user_by_id(target_user_id)
+    if not response["user"]:
+        return response, status
+
+    target_user = response["user"]
+    target_profile = target_user.profile
+
+    target_user_followed = False
+    if requesting_user:
+        target_user_followed = target_user.followers.filter(id=requesting_user.id).exists()
+
+    return {
+        "message": {
+            "content": "User profile is retrieved successfully.",
+            "type": "success"
+        },
+        "profile": user_serializers.serialize_user_profile(target_profile),
+        "target_user_followed": target_user_followed
+    }, 200

@@ -97,9 +97,19 @@ def logout_user(request):
         "redirect_url": "",
     })
 
-def view_profile(request, user_id):
+def view_profile(request, target_user_id):
     """View function that returns information about the profile of a specific user"""
-    pass
+    if request.method == "GET":
+        requesting_user_id = request.user.id if request.user.is_authenticated else None
+        response, status = services.view_profile(requesting_user_id, target_user_id)
+        return JsonResponse(data=response, status=status)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 def view_profile_picture(request, user_id):
     """View function that returns the profile picture of a specific user"""

@@ -1,4 +1,5 @@
 from news_backend import settings
+from posts import serializers as post_serializers
 
 def serialize_user_teaser(user):
     return {
@@ -28,7 +29,7 @@ def serialize_ui_customization(customization):
         "font_colour": customization.font_colour
     }
 
-def serialize_user_profile(profile):
+def serialize_user_profile_settings(profile):
     user = profile.user
     return {
             "username": user.username,
@@ -39,3 +40,16 @@ def serialize_user_profile(profile):
             "profile_bio": profile.bio,
             "avatar": profile.avatar.url if profile.avatar else None
         }
+
+def serialize_user_profile(profile):
+    user = profile.user
+    return {
+        "username": user.username,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "birth_date": user.birth_date.strftime(settings.DATE_INPUT_FORMATS[0]),
+        "gender": user.gender,
+        "profile_bio": profile.bio,
+        "avatar": profile.avatar.url if profile.avatar else None,
+        "posts": [post_serializers.serialize_post(post) for post in user.posts]
+    }
