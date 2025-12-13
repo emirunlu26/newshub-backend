@@ -2,7 +2,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-import services as post_services
+from . import services as post_services
 import json
 
 # Create your views here.

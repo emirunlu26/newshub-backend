@@ -36,7 +36,6 @@ class Comment(models.Model):
     post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="comments", verbose_name="Post")
     content = models.TextField(verbose_name="Content")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creation Time")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Update Time")
     parent_comment = models.ForeignKey(to="self", on_delete=models.CASCADE, related_name="child_comments"
                                        , blank=True, null=True, verbose_name="Parent Comment")
 

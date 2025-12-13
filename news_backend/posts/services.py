@@ -1,6 +1,6 @@
 from users.services import get_user_by_id
 from .models import Post, Comment
-import serializers as post_serializers
+from . import serializers as post_serializers
 
 def get_post_by_id_helper(post_id):
     post = Post.objects.filter(id=post_id).first()
