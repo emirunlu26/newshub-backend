@@ -22,6 +22,9 @@ class Post(models.Model):
     def __str__(self):
         return self.content
 
+    def is_created_by(self, user):
+        return self.owner == user
+
 class PostImage(models.Model):
     DEFAULT_RANK = -1 # no ranked assigned value
     post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="images", verbose_name="Post")

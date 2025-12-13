@@ -39,7 +39,35 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
     pass
 
 def delete_post_by_id(requesting_user_id, post_id):
-    pass
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
+    requesting_user = response["user"]
+
+    post = Post.objects.filter(id=post_id).first()
+    if not post:
+        return {
+            "message": {
+                "content": "There is no post with the given id.",
+                "type": "error"
+            }
+        }, 404
+
+    if requesting_user.is_superuser or post.is_created_by(requesting_user):
+        post.delete()
+        return {
+            "message": {
+                "content": "Post is deleted successfully.",
+                "type": "success"
+            }
+        }, 200
+    else:
+        return {
+            "message": {
+                "content": "You're not authorized to delete this post.",
+                "type": "error"
+            }
+        }, 401
 
 def get_comment_by_id(comment_id):
     comment = Comment.objects.filter(id=comment_id).first()
@@ -136,6 +164,12 @@ def delete_comment_by_id(requesting_user_id, comment_id):
 
     if requesting_user.is_superuser or comment.is_created_by(requesting_user):
         comment.delete()
+        return {
+            "message": {
+                "content": "Comment is deleted successfully.",
+                "type": "success"
+            }
+        }, 200
     else:
         return {
             "message": {
