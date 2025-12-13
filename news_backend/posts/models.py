@@ -37,6 +37,21 @@ class Comment(models.Model):
     parent_comment = models.ForeignKey(to="self", on_delete=models.CASCADE, related_name="child_comments"
                                        , blank=True, null=True, verbose_name="Parent Comment")
 
+    @staticmethod
+    def is_content_valid(content):
+        MAX_LENGTH = 1000
+        CONTENT_NOT_STRING_ERROR = "Content must be type of string."
+        CONTENT_LENGTH_ERROR = f"The length of the content should be between 1 - {MAX_LENGTH}"
+        CONTENT_VALID = ""
+        if not isinstance(content, str):
+            return False, CONTENT_NOT_STRING_ERROR
+        content_len = len(content)
+        content_len_valid = content_len > 0 and content_len <= MAX_LENGTH
+        if content_len_valid:
+            return True, CONTENT_VALID
+        else:
+            return False, CONTENT_LENGTH_ERROR
+
 class PostReaction(models.Model):
         post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="reactions"
                                  , verbose_name="Reacted Post")

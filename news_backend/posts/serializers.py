@@ -46,3 +46,33 @@ def serialize_post_image(post_image):
         "url": post_image.url,
         "rank": post_image.rank
     }
+
+def serialize_comment(comment, include_parent=True):
+    if not comment:
+        return None
+    owner = comment.owner
+    owner_avatar = owner.avatar
+    if include_parent:
+        parent_comment = comment.parent_comment
+        return {
+            "owner": {
+                "username": owner.username,
+                "avatar_url": owner_avatar.url if owner_avatar else None
+            },
+            "post_id": comment.post.id,
+            "content": comment.content,
+            "parent_comment": serialize_comment(parent_comment, include_parent=False) if parent_comment else None,
+            "created_at": comment.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
+            "updated_at": comment.updated_at.strftime(settings.DATE_INPUT_FORMATS[1])
+        }
+    else:
+        return {
+            "owner": {
+                "username": owner.username,
+                "avatar_url": owner_avatar.url if owner_avatar else None
+            },
+            "post_id": comment.post.id,
+            "content": comment.content,
+            "created_at": comment.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
+            "updated_at": comment.updated_at.strftime(settings.DATE_INPUT_FORMATS[1])
+        }

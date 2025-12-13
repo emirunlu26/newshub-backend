@@ -14,14 +14,10 @@ def get_user_by_id(id, user_type="Requesting"):
     user = User.objects.filter(id=id).first()
     if user:
         return {
-            "message": {
-                "content": user_type + " " + "user is retrieved successfully.",
-                "type": "success"
-            },
             "user": user
         }, 200
     else:
-        return user, {
+        return {
             "message": {
                 "content": "User with the given id is not found.",
                 "type": "error"

@@ -13,6 +13,15 @@ def create_post(request):
 @login_required(login_url="users:login")
 def create_comment(request, post_id):
     """View function that handles the request for a user to create a comment"""
+    if request.method == "POST":
+        pass
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def view_update_delete_post(request, post_id):
