@@ -37,6 +37,9 @@ class Comment(models.Model):
     parent_comment = models.ForeignKey(to="self", on_delete=models.CASCADE, related_name="child_comments"
                                        , blank=True, null=True, verbose_name="Parent Comment")
 
+    def is_created_by(self, user):
+        return self.owner == user
+
     @staticmethod
     def is_content_valid(content):
         MAX_LENGTH = 1000

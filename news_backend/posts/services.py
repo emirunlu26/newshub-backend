@@ -85,7 +85,7 @@ def create_comment(user_id, post_id, create_data):
     # if parent_comment_id is provided, check its existence, else assume that there is no parent_comment
     parent_comment = None
     if parent_comment_id:
-        parent_comment = Comment.objects.filter(id=parent_comment_id)
+        parent_comment = Comment.objects.filter(id=parent_comment_id).first()
         if not parent_comment:
             return {
                 "message": {
@@ -120,6 +120,28 @@ def create_comment(user_id, post_id, create_data):
     }
 
 def delete_comment_by_id(requesting_user_id, comment_id):
-    pass
+    response, status = get_user_by_id(requesting_user_id)
+    if not response["user"]:
+        return response, status
+    requesting_user = response["user"]
+
+    comment = Comment.objects.filter(id=comment_id).first()
+    if not comment:
+        return {
+            "message": {
+                "content": "There is no comment with the given id.",
+                "type": "error"
+            }
+        }, 404
+
+    if requesting_user.is_superuser or comment.is_created_by(requesting_user):
+        comment.delete()
+    else:
+        return {
+            "message": {
+                "content": "You're not authorized to delete this comment.",
+                "type": "error"
+            }
+        }, 401
 
 
