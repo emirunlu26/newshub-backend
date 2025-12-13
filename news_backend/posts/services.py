@@ -1,8 +1,8 @@
 from users.services import get_user_by_id
 from .models import Post, Comment
-from .serializers import serialize_post, serialize_comment
+import serializers as post_serializers
 
-def get_post_by_id(post_id):
+def get_post_by_id_helper(post_id):
     post = Post.objects.filter(id=post_id).first()
     if post:
         return {
@@ -17,6 +17,24 @@ def get_post_by_id(post_id):
             "post": None
         }, 404
 
+def get_post_by_id(post_id):
+    post = Post.objects.filter(id=post_id).first()
+    if post:
+        return {
+            "message": {
+                "content": "Post with the given id is retrieved successfully.",
+                "type": "success"
+            },
+            "post": post
+        }, 200
+    else:
+        return {
+            "message": {
+                "content": "Post with the given id is not found.",
+                "type": "error"
+            }
+        }, 404
+
 def update_post_by_id(requesting_user_id, post_id, update_data):
     pass
 
@@ -24,7 +42,23 @@ def delete_post_by_id(requesting_user_id, post_id):
     pass
 
 def get_comment_by_id(comment_id):
-    pass
+    comment = Comment.objects.filter(id=comment_id).first()
+
+    if comment:
+        return {
+            "message": {
+                "content": "Comment with the given id is retrieved successfully.",
+                "type": "success"
+            },
+            "comment": post_serializers.serialize_comment(comment)
+        }, 200
+    else:
+        return {
+            "message": {
+                "content": "Comment with the given id can not be found.",
+                "type": "error"
+            },
+        }, 404
 
 def create_comment(user_id, post_id, create_data):
     response, status = get_user_by_id(user_id)
@@ -32,7 +66,7 @@ def create_comment(user_id, post_id, create_data):
         return response, status
     user = response["user"]
 
-    response, status = get_post_by_id(post_id)
+    response, status = get_post_by_id_helper(post_id)
     if not response["post"]:
         return response, status
     post = response["post"]
@@ -82,7 +116,7 @@ def create_comment(user_id, post_id, create_data):
             "content": "Comment created successfully.",
             "type": "success"
         },
-        "comment": serialize_comment(new_comment)
+        "comment": post_serializers.serialize_comment(new_comment)
     }
 
 def update_comment_by_id(requesting_user_id, comment_id, update_data):
