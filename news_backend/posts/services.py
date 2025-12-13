@@ -16,6 +16,16 @@ def get_post_by_id(post_id):
             },
             "post": None
         }, 404
+
+def update_post_by_id(requesting_user_id, post_id, update_data):
+    pass
+
+def delete_post_by_id(requesting_user_id, post_id):
+    pass
+
+def get_comment_by_id(comment_id):
+    pass
+
 def create_comment(user_id, post_id, create_data):
     response, status = get_user_by_id(user_id)
     if not response["user"]:
@@ -74,5 +84,11 @@ def create_comment(user_id, post_id, create_data):
         },
         "comment": serialize_comment(new_comment)
     }
+
+def update_comment_by_id(requesting_user_id, comment_id, update_data):
+    pass
+
+def delete_comment_by_id(requesting_user_id, comment_id):
+    pass
 
 
