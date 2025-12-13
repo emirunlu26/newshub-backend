@@ -21,7 +21,7 @@ class User(AbstractUser):
     gender = models.CharField(max_length=1, default=DEFAULT_GENDER_CHOICE, choices=GENDER_CHOICES
                               , verbose_name="Gender")
     followers = models.ManyToManyField(to="self", symmetrical=False, blank=True, related_name="following_list")
-    bookmarked_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="bookmarked_by"
+    bookmarked_articles = models.ManyToManyField(to="articles.Article", related_name="bookmarked_by"
                                                  , through="articles.ArticleBookmark")
     viewed_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="viewed_by"
                                              , through="articles.ArticleView")

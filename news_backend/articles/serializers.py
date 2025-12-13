@@ -1,4 +1,3 @@
-from users.serializers import serialize_author
 def serialize_article_teaser(article):
     if not article:
         return None
@@ -34,4 +33,16 @@ def serialize_category(category):
             "name": parent_category.name,
             "slug": parent_category.slug
         } if parent_category else None
+    }
+
+def serialize_author(author):
+    if not author:
+        return None
+    user = author.user
+    return {
+        "user_id": user.id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "about": author.about,
+        "profile_picture": author.profile_image.url if author.profile_image else None
     }
