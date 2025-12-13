@@ -119,9 +119,6 @@ def create_comment(user_id, post_id, create_data):
         "comment": post_serializers.serialize_comment(new_comment)
     }
 
-def update_comment_by_id(requesting_user_id, comment_id, update_data):
-    pass
-
 def delete_comment_by_id(requesting_user_id, comment_id):
     pass
 

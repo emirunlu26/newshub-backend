@@ -63,27 +63,16 @@ def view_update_delete_post(request, post_id):
     return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
-def view_update_delete_comment(request, post_id):
-    """View function that handles the request for a user to view/update/delete a specific comment"""
+def view_delete_comment(request, post_id):
+    """View function that handles the request for a user to view/delete a specific comment"""
     if request.method == "GET":
         response, status = post_services.get_comment_by_id(post_id)
-    elif request.method == "PUT":
-        try:
-            update_data = json.loads(request.body)
-        except:
-            return JsonResponse(data={
-                "message": {
-                    "content": "Invalid JSON",
-                    "type": "error"
-                },
-            }, status=400)
-        response, status = post_services.update_comment_by_id(request.user.id, post_id, update_data)
     elif request.method == "DELETE":
         response, status = post_services.delete_comment_by_id(request.user.id, post_id)
     else:
         return JsonResponse(data={
             "message": {
-                "content": "Only GET, PUT and DELETE request required.",
+                "content": "Only GET and DELETE requests are allowed.",
                 "type": "error"
             }
         }, status=405)
