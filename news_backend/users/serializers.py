@@ -2,6 +2,8 @@ from news_backend import settings
 from posts import serializers as post_serializers
 
 def serialize_user_teaser(user):
+    if not user:
+        return None
     return {
         "id": user.id,
         "username": user.username,
@@ -11,6 +13,8 @@ def serialize_user_teaser(user):
     }
 
 def serialize_author(author):
+    if not author:
+        return None
     user = author.user
     return {
         "user_id": user.id,
@@ -21,6 +25,8 @@ def serialize_author(author):
     }
 
 def serialize_ui_customization(customization):
+    if not customization:
+        return None
     return {
         "username": customization.user.username,
         "theme": customization.theme,
@@ -30,6 +36,8 @@ def serialize_ui_customization(customization):
     }
 
 def serialize_user_profile_settings(profile):
+    if not profile:
+        return None
     user = profile.user
     return {
             "username": user.username,
@@ -42,6 +50,8 @@ def serialize_user_profile_settings(profile):
         }
 
 def serialize_user_profile(profile):
+    if not profile:
+        return None
     user = profile.user
     return {
         "username": user.username,

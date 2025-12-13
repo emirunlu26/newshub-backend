@@ -3,6 +3,8 @@ from articles import serializers as article_serializers
 from .models import PostImage
 
 def serialize_post(post):
+    if not post:
+        return None
     owner = post.owner
     avatar = owner.avatar
 
@@ -20,6 +22,8 @@ def serialize_post(post):
     }
 
 def serialize_referenced_post(referenced_post):
+    if not referenced_post:
+        return None
     referenced_post_owner = referenced_post.owner
     referenced_post_owner_avatar = referenced_post_owner.avatar
     return {
@@ -34,6 +38,8 @@ def serialize_referenced_post(referenced_post):
         }
 
 def serialize_post_image(post_image):
+    if not post_image:
+        return None
     return {
         "post_id": post_image.post.id,
         "id": post_image.id,

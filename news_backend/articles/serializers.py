@@ -13,6 +13,8 @@ def serialize_article_teaser(article):
     }
 
 def serialize_tag(tag):
+    if not tag:
+        return None
     return {
         "id": tag.id,
         "name": tag.name,
@@ -20,6 +22,8 @@ def serialize_tag(tag):
     }
 
 def serialize_category(category):
+    if not category:
+        return None
     parent_category = category.parent_category
     return {
         "id": category.id,
