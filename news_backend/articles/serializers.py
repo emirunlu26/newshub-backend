@@ -1,5 +1,8 @@
 from users.serializers import serialize_author
 def serialize_article_teaser(article):
+    if not article:
+        return None
+
     return {
         "id": article.id,
         "slug": article.slug,

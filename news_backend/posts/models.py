@@ -23,7 +23,7 @@ class Post(models.Model):
         return self.content
 
 class PostImage(models.Model):
-    post = models.ForeignKey(to=Post, on_delete=models.CASCADE, verbose_name="Post")
+    post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="images", verbose_name="Post")
     image = models.ImageField(upload_to="post_images/", verbose_name="Image")
     rank = models.IntegerField(verbose_name="Rank of Image in Post")
 

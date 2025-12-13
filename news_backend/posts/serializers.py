@@ -1,4 +1,5 @@
 from news_backend import settings
+from articles import serializers as article_serializers
 from .models import PostImage
 
 def serialize_post(post):
@@ -12,16 +13,15 @@ def serialize_post(post):
         },
         "created_at": post.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
         "updated_at": post.updated_at.strftime(settings.DATE_INPUT_FORMATS[1]),
-        "referenced_article": "",
+        "referenced_article": article_serializers.serialize_article_teaser(post.referenced_article),
         "referenced_post": serialize_referenced_post(post.referenced_post),
         "content": post.content,
-        "images": ""
+        "images": [serialize_post_image(post_image) for post_image in post.images.order_by("rank")]
     }
 
 def serialize_referenced_post(referenced_post):
     referenced_post_owner = referenced_post.owner
     referenced_post_owner_avatar = referenced_post_owner.avatar
-    post_images =
     return {
             "owner": {
                 "username": referenced_post_owner.username,
@@ -30,12 +30,13 @@ def serialize_referenced_post(referenced_post):
             "created_at": referenced_post.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
             "updated_at": referenced_post.updated_at.strftime(settings.DATE_INPUT_FORMATS[1]),
             "content": referenced_post.content,
-            "images": ""
+            "images": [serialize_post_image(post_image) for post_image in referenced_post.images.order_by("rank")]
         }
 
 def serialize_post_image(post_image):
     return {
         "post_id": post_image.post.id,
-        "post_image_url": post_image.url,
+        "id": post_image.id,
+        "url": post_image.url,
         "rank": post_image.rank
     }

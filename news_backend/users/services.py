@@ -522,16 +522,12 @@ def view_profile(requesting_user_id, target_user_id):
         else:
             return response, status
 
-    response, status = get_user_by_id(target_user_id)
+    response, status = get_user_by_id(target_user_id, user_type="Target")
     if not response["user"]:
         return response, status
 
     target_user = response["user"]
     target_profile = target_user.profile
-
-    target_user_followed = False
-    if requesting_user:
-        target_user_followed = target_user.followers.filter(id=requesting_user.id).exists()
 
     return {
         "message": {
@@ -539,5 +535,5 @@ def view_profile(requesting_user_id, target_user_id):
             "type": "success"
         },
         "profile": user_serializers.serialize_user_profile(target_profile),
-        "target_user_followed": target_user_followed
+        "target_user_followed": requesting_user.follows_user(target_user) if requesting_user else False
     }, 200
