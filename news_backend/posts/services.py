@@ -1,5 +1,5 @@
 from users.services import get_user_by_id_helper
-from .models import Post, PostImage, Comment
+from .models import Post, PostImage, PostReaction, Comment, CommentReaction
 from articles.models import Article
 from . import serializers as post_serializers
 
@@ -165,7 +165,7 @@ def create_post(requesting_user_id, create_data):
                     "status": 200
                 }
             ],
-            "post": post_serializers.serialize_post(new_post)
+            "post": post_serializers.serialize_post(new_post, requesting_user)
         }
 
 def get_post_by_id(post_id):
@@ -341,7 +341,12 @@ def delete_post_by_id(requesting_user_id, post_id):
             }
         }
 
-def get_comment_by_id(comment_id):
+def get_comment_by_id(requesting_user_id, comment_id):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
     comment = Comment.objects.filter(id=comment_id).first()
 
     if comment:
@@ -351,7 +356,7 @@ def get_comment_by_id(comment_id):
                 "type": "success",
                 "status": 200
             },
-            "comment": post_serializers.serialize_comment(comment)
+            "comment": post_serializers.serialize_comment(comment, requesting_user)
         }
     else:
         return {
@@ -467,8 +472,18 @@ def get_reactions_to_post(requesting_user_id, post_id):
     response = get_post_by_id_helper(post_id)
     if not response["post"]:
         return response
+    reacted_post = response["post"]
 
+    sorted_reactions = PostReaction.get_sorted_reactions(requesting_user, reacted_post)
 
+    return {
+        "message": {
+            "content": "Reactions for the post with the given id are retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "reactions": [post_serializers.serialize_post_reaction(reaction) for reaction in sorted_reactions]
+    }
 
 
 def get_reactions_to_comment(requesting_user_id, comment_id):
@@ -480,5 +495,17 @@ def get_reactions_to_comment(requesting_user_id, comment_id):
     response = get_comment_by_id_helper(comment_id)
     if not response["comment"]:
         return response
+    reacted_comment = response["comment"]
+
+    sorted_reactions = CommentReaction.get_sorted_reactions(requesting_user, reacted_comment)
+
+    return {
+        "message": {
+            "content": "Reactions for the comment with the given id are retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "reactions": [post_serializers.serialize_comment_reaction(reaction) for reaction in sorted_reactions]
+    }
 
 

@@ -89,7 +89,7 @@ def view_update_delete_post(request, post_id):
 def view_delete_comment(request, post_id):
     """View function that handles the request for a user to view/delete a specific comment"""
     if request.method == "GET":
-        response = post_services.get_comment_by_id(post_id)
+        response = post_services.get_comment_by_id(request.user.id, post_id)
     elif request.method == "DELETE":
         response = post_services.delete_comment_by_id(request.user.id, post_id)
     else:

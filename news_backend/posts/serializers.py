@@ -1,8 +1,8 @@
 from news_backend import settings
 from articles import serializers as article_serializers
-from .models import PostImage
+from .models import PostReaction, CommentReaction
 
-def serialize_post(post):
+def serialize_post(post, requesting_user):
     if not post:
         return None
     owner = post.owner
@@ -18,7 +18,9 @@ def serialize_post(post):
         "referenced_article": article_serializers.serialize_article_teaser(post.referenced_article),
         "referenced_post": serialize_referenced_post(post.referenced_post),
         "content": post.content,
-        "images": [serialize_post_image(post_image) for post_image in post.images.order_by("rank")]
+        "images": [serialize_post_image(post_image) for post_image in post.images.order_by("rank")],
+        "reactions": [serialize_post_reaction(post_reaction) for post_reaction in
+                      PostReaction.get_sorted_reactions(requesting_user, post)]
     }
 
 def serialize_referenced_post(referenced_post):
@@ -47,7 +49,22 @@ def serialize_post_image(post_image):
         "rank": post_image.rank
     }
 
-def serialize_comment(comment, include_parent=True):
+def serialize_post_reaction(post_reaction):
+    if not post_reaction:
+        return None
+    reaction_content = post_reaction.reaction
+    reaction_icon = reaction_content.icon
+    return {
+        "post_id": post_reaction.post.id,
+        "user_id": post_reaction.reaction_owner.id,
+        "reaction": {
+            "name": reaction_content.name,
+            "icon": reaction_icon.url if reaction_icon.url else None
+        },
+        "created_at": post_reaction.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
+    }
+
+def serialize_comment(comment, requesting_user, include_parent=True):
     if not comment:
         return None
     owner = comment.owner
@@ -61,9 +78,11 @@ def serialize_comment(comment, include_parent=True):
             },
             "post_id": comment.post.id,
             "content": comment.content,
-            "parent_comment": serialize_comment(parent_comment, include_parent=False),
+            "parent_comment": serialize_comment(parent_comment, requesting_user, include_parent=False),
             "created_at": comment.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
-            "updated_at": comment.updated_at.strftime(settings.DATE_INPUT_FORMATS[1])
+            "updated_at": comment.updated_at.strftime(settings.DATE_INPUT_FORMATS[1]),
+            "reactions": [serialize_comment_reaction(comment_reaction) for comment_reaction in
+                          CommentReaction.get_sorted_reactions(requesting_user, comment)]
         }
     else:
         return {
@@ -74,5 +93,24 @@ def serialize_comment(comment, include_parent=True):
             "post_id": comment.post.id,
             "content": comment.content,
             "created_at": comment.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
-            "updated_at": comment.updated_at.strftime(settings.DATE_INPUT_FORMATS[1])
+            "updated_at": comment.updated_at.strftime(settings.DATE_INPUT_FORMATS[1]),
+            "reactions": [serialize_comment_reaction(comment_reaction) for comment_reaction in
+                         CommentReaction.get_sorted_reactions(requesting_user, comment)]
         }
+
+def serialize_comment_reaction(comment_reaction):
+    if not comment_reaction:
+        return None
+
+    reaction_content =comment_reaction.reaction
+    reaction_icon = reaction_content.icon
+
+    return {
+        "comment_id": comment_reaction.post.id,
+        "user_id": comment_reaction.reaction_owner.id,
+        "reaction": {
+            "name": reaction_content.name,
+            "icon": reaction_icon.url if reaction_icon.url else None
+        },
+        "created_at": comment_reaction.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
+    }
