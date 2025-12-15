@@ -485,6 +485,38 @@ def get_reactions_to_post(requesting_user_id, post_id):
         "reactions": [post_serializers.serialize_post_reaction(reaction) for reaction in sorted_reactions]
     }
 
+def delete_reaction_to_post(requesting_user_id, post_id):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_post_by_id_helper(post_id)
+    if not response["post"]:
+        return response
+    reacted_post = response["post"]
+
+    post_reaction = PostReaction.objects.filter(reaction_owner=requesting_user, post=reacted_post).first()
+
+    if not post_reaction:
+        return {
+            "message": {
+                "content": "The user has already not reacted to the post with the given id.",
+                "type": "error",
+                "status": 404
+            }
+        }
+    post_reaction.delete()
+
+    return {
+        "message": {
+            "content": "The reaction of the user to the post is deleted successfully.",
+            "type": "success",
+            "status": 200
+        }
+    }
+
+
 
 def get_reactions_to_comment(requesting_user_id, comment_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -506,6 +538,37 @@ def get_reactions_to_comment(requesting_user_id, comment_id):
             "status": 200
         },
         "reactions": [post_serializers.serialize_comment_reaction(reaction) for reaction in sorted_reactions]
+    }
+
+def delete_reaction_to_comment(requesting_user_id, comment_id):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_comment_by_id_helper(comment_id)
+    if not response["comment"]:
+        return response
+    reacted_comment = response["comment"]
+
+    comment_reaction = CommentReaction.objects.filter(reaction_owner=requesting_user, comment=reacted_comment).first()
+
+    if not comment_reaction:
+        return {
+            "message": {
+                "content": "The user has already not reacted to the comment with the given id.",
+                "type": "error",
+                "status": 404
+            }
+        }
+    comment_reaction.delete()
+
+    return {
+        "message": {
+            "content": "The reaction of the user to the comment is deleted successfully.",
+            "type": "success",
+            "status": 200
+        }
     }
 
 

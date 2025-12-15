@@ -136,7 +136,7 @@ def create_view_update_delete_reaction_to_post(request, post_id):
         return JsonResponse(data=response, status=response["messages"][FIRST_MESSAGE_INDEX]["status"])
 
     elif request.method == "DELETE":
-        response = post_services.delete_reaction_to_post(post_id)
+        response = post_services.delete_reaction_to_post(request.user.id, post_id)
         return JsonResponse(data=response, status=response["message"]["status"])
 
     else:
