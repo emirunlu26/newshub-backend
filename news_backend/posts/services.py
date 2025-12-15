@@ -165,7 +165,7 @@ def create_post(requesting_user_id, create_data):
                     "status": 200
                 }
             ],
-            "post": post_serializers.serialize_post(new_post, requesting_user)
+            "post": post_serializers.serialize_post(new_post)
         }
 
 def get_post_by_id(post_id):
@@ -356,7 +356,7 @@ def get_comment_by_id(requesting_user_id, comment_id):
                 "type": "success",
                 "status": 200
             },
-            "comment": post_serializers.serialize_comment(comment, requesting_user)
+            "comment": post_serializers.serialize_comment(comment)
         }
     else:
         return {
