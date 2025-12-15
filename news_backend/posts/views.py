@@ -104,12 +104,94 @@ def view_delete_comment(request, post_id):
 @login_required(login_url="users:login")
 def create_view_update_delete_reaction_to_post(request, post_id):
     """View function that handles the request for a user to add/view/change/delete reaction to a post"""
-    pass
+    if request.method == "POST":
+        try:
+            create_data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON",
+                    "type": "error"
+                },
+            }, status=400)
+        response = post_services.create_reaction_to_post(post_id, create_data)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    elif request.method == "GET":
+        response = post_services.get_reactions_to_post(post_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    elif request.method == "PUT":
+        try:
+            update_data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON",
+                    "type": "error"
+                },
+            }, status=400)
+        response = post_services.update_reaction_to_post(post_id, update_data)
+        FIRST_MESSAGE_INDEX = 0
+        return JsonResponse(data=response, status=response["messages"][FIRST_MESSAGE_INDEX]["status"])
+
+    elif request.method == "DELETE":
+        response = post_services.delete_reaction_to_post(post_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "Only POS/GET/PUT/DELETE requests are allowed.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
-def create_view_update_delete_reaction_to_comment(request, post_id):
+def create_view_update_delete_reaction_to_comment(request, comment_id):
     """View function that handles the request for a user to add/view/change/delete reaction to a comment"""
-    pass
+    if request.method == "POST":
+        try:
+            create_data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON",
+                    "type": "error"
+                },
+            }, status=400)
+        response = post_services.create_reaction_to_comment(comment_id, create_data)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    elif request.method == "GET":
+        response = post_services.get_reactions_to_comment(comment_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    elif request.method == "PUT":
+        try:
+            update_data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON",
+                    "type": "error"
+                },
+            }, status=400)
+        response = post_services.update_reaction_to_comment(comment_id, update_data)
+        FIRST_MESSAGE_INDEX = 0
+        return JsonResponse(data=response, status=response["messages"][FIRST_MESSAGE_INDEX]["status"])
+
+    elif request.method == "DELETE":
+        response = post_services.delete_reaction_to_comment(comment_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "Only POST/GET/PUT/DELETE requests are allowed.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def reference_post(request, post_id):
