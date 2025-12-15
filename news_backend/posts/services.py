@@ -71,42 +71,75 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
     referenced_article_id = update_data.get("referenced_article_id")
     referenced_post_id = update_data.get("referenced_article_id")
 
+    check_dict = {
+        "error_messages": [],
+        "valid_update_data": {}
+    }
     if content:
         content_is_valid, content_error_message = Post.is_content_valid(content)
-        if not content_is_valid:
-            return {
-                "message": {
+        if content_is_valid:
+            check_dict["valid_update_data"]["content"] = content
+        else:
+            check_dict["error_messages"].append(
+                {
                     "content": f"Invalid post content: {content_error_message}",
-                    "type": "error"
+                     "type": "error",
+                    "status": 400
                 }
-            }, 400
-        post.content = content
-        post.save()
+            )
     if "referenced_article_id" in update_data:
         if not referenced_article_id:
-            post.referenced_article = None
-            post.save()
+            check_dict["valid_update_data"]["referenced_article"] = None
         else:
             article = Article.objects.filter(id=referenced_article_id).first()
-            if not article:
-                return {
-                    "message": {"content": "Article with the given id to reference can not be found.", "type": "error"}
-                }, 404
-            post.referenced_article = article
-            post.save()
+            if article:
+                check_dict["valid_update_data"]["referenced_article"] = article
+            else:
+                check_dict["error_messages"].append(
+                    {
+                        "content": "Article with the given id to reference can not be found.",
+                        "type": "error",
+                        "status": 404
+                    }
+                )
 
     if "referenced_post_id" in update_data:
         if not referenced_post_id:
-            post.referenced_post = None
-            post.save()
+            check_dict["valid_update_data"]["referenced_post"] = None
         else:
             post = Post.objects.filter(id=referenced_post_id).first()
-            if not post:
-                return {
-                    "message": {"content": "Post with the given id to reference can not be found.", "type": "error"}
-                }, 404
-            post.referenced_post = post
-            post.save()
+            if post:
+                check_dict["valid_update_data"]["referenced_post"] = post
+            else:
+                check_dict["error_messages"].append(
+                    {
+                        "content": "Post with the given id to reference can not be found.",
+                        "type": "error",
+                        "status": 404
+                    }
+                )
+    # If there is any error, return all error messages. Otherwise, update data with the validated data.
+    if check_dict["error_messages"]:
+        return {
+            "messages": check_dict["error_messages"]
+        }
+    else:
+        if "content" in check_dict["valid_update_data"]:
+            post.content = check_dict["valid_update_data"]["content"]
+        if "referenced_article" in check_dict["valid_update_data"]:
+            post.referenced_article = check_dict["valid_update_data"]["referenced_article"]
+        if "referenced_post" in check_dict["valid_update_data"]:
+            post.referenced_post = check_dict["valid_update_data"]["referenced_post"]
+
+        return {
+            "messages": [
+                {
+                    "content": "Post updated successfully.",
+                    "type": "success",
+                    "status": 200
+                }
+            ]
+        }
 
 def delete_post_by_id(requesting_user_id, post_id):
     response, status = get_user_by_id(requesting_user_id)
