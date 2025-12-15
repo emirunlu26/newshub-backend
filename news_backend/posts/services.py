@@ -7,8 +7,13 @@ def get_post_by_id_helper(post_id):
     post = Post.objects.filter(id=post_id).first()
     if post:
         return {
+            "message": {
+                "content": "Post with the given id is retrieved successfully.",
+                "type": "success",
+                "status": 200
+            },
             "post": post
-        }, 200
+        }
     else:
         return {
             "message": {
@@ -17,6 +22,28 @@ def get_post_by_id_helper(post_id):
                 "status": 404
             },
             "post": None
+        }
+
+def get_comment_by_id_helper(comment_id):
+    comment = Comment.objects.filter(id=comment_id).first()
+
+    if comment:
+        return {
+            "message": {
+                "content": "Comment with the given id is retrieved successfully.",
+                "type": "success",
+                "status": 200
+            },
+            "comment": comment
+        }
+    else:
+        return {
+            "message": {
+                "content": "Comment with the given id can not be found.",
+                "type": "error",
+                "status": 404
+            },
+            "comment": None
         }
 
 def create_post(requesting_user_id, create_data):
@@ -430,5 +457,28 @@ def delete_comment_by_id(requesting_user_id, comment_id):
                 "status": 401
             }
         }
+
+def get_reactions_to_post(requesting_user_id, post_id):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_post_by_id_helper(post_id)
+    if not response["post"]:
+        return response
+
+
+
+
+def get_reactions_to_comment(requesting_user_id, comment_id):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_comment_by_id_helper(comment_id)
+    if not response["comment"]:
+        return response
 
 

@@ -1,5 +1,7 @@
 from django.db import models
 from datetime import datetime
+from functools import cmp_to_key
+
 # Create your models here.
 
 class Reaction(models.Model):
@@ -94,6 +96,18 @@ class PostReaction(models.Model):
                 )
             ]
 
+        @staticmethod
+        def get_sorted_reactions(requesting_user, post, newest_first=True):
+            CREATION_TIME_ORDER = "-created_at" if newest_first else "created_at"
+            sorted_reactions_by_created_at = (((PostReaction.objects
+                                              .filter(reaction_owner=requesting_user, post=post))
+                                              .select_related("reaction"))
+                                              .order_by(CREATION_TIME_ORDER))
+            def compare_reactions(reaction1, reaction2):
+                pass
+
+            return sorted(sorted_reactions_by_created_at, key=cmp_to_key(compare_reactions))
+
 
 class CommentReaction(models.Model):
     comment = models.ForeignKey(to=Comment, on_delete=models.CASCADE, related_name="reactions"
@@ -110,3 +124,16 @@ class CommentReaction(models.Model):
                 name="unique_user_reaction_per_comment"
             )
         ]
+
+    @staticmethod
+    def get_comment_reactions(requesting_user, comment, newest_first=True):
+        CREATION_TIME_ORDER = "-created_at" if newest_first else "created_at"
+        sorted_reactions_by_created_at = (((CommentReaction.objects
+                                            .filter(reaction_owner=requesting_user, comment=comment))
+                                           .select_related("reaction"))
+                                          .order_by(CREATION_TIME_ORDER))
+
+        def compare_reactions(reaction1, reaction2):
+            pass
+
+        return sorted(sorted_reactions_by_created_at, key=cmp_to_key(compare_reactions))
