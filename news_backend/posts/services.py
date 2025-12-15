@@ -387,7 +387,6 @@ def create_comment(user_id, post_id, create_data):
         content=content,
         parent_comment=parent_comment
     )
-    new_comment.save()
 
     return {
         "message": {

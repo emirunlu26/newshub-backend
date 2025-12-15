@@ -106,7 +106,6 @@ def register_user(register_data):
                                     country=country,
                                     birth_date=datetime.strptime(birth_date_str, settings.DATE_INPUT_FORMATS[0]).date(),
                                     gender=gender)
-    new_user.save()
     create_profile_for_new_user_helper(new_user)
     login(request=request, user=new_user)
     return {
@@ -121,7 +120,6 @@ def register_user(register_data):
 
 def create_profile_for_new_user_helper(user):
     user_profile = UserProfile.objects.create(user=user)
-    user_profile.save()
 
 def view_following_list(requesting_user_id, target_user_id):
     response = get_user_by_id_helper(requesting_user_id)
