@@ -167,5 +167,5 @@ def bookmark_or_unbookmark_article(request, id):
     pass
 
 @login_required(login_url="users:login")
-def view_add_update_delete_reaction_to_article(request, post_id):
+def view_add_delete_reaction_to_article(request, post_id):
     pass

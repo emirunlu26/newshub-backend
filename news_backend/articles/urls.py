@@ -21,6 +21,6 @@ urlpatterns = [
     path("tags/<str:slug>/follow/", views.follow_or_unfollow_tag, name="follow-or-unfollow-tag"),
     path("categories/<str:slug>/follow/", views.follow_or_unfollow_category, name="follow-or-unfollow-category"),
     path("<int:id>/bookmark/", views.bookmark_or_unbookmark_article, name="bookmark-or-unbookmark-article"),
-    path("<int:id>/react", views.view_add_update_delete_reaction_to_article
-         , name="view-add-update-delete-reaction-to-article")
+    path("<int:id>/react", views.view_add_delete_reaction_to_article
+         , name="view-add-delete-reaction-to-article")
 ]
