@@ -21,8 +21,8 @@ def register_user(request):
                 }
             }, status=400)
         register_data["request"] = request
-        response, status = services.register_user(register_data)
-        return JsonResponse(data=response, status=status)
+        response = services.register_user(register_data)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -40,7 +40,7 @@ def login_user(request):
                 "type": "info"
             },
             "redirect_url": ""
-        })
+        }, status=400)
     if request.method == "POST":
         try:
             data = json.loads(request.body)
@@ -68,7 +68,7 @@ def login_user(request):
                     "id": user.id,
                     "username": user.username
                 }
-            })
+            }, status=200)
         else:
             return JsonResponse(data={
                 "message": {
@@ -95,14 +95,14 @@ def logout_user(request):
             "type": "success"
         },
         "redirect_url": "",
-    })
+    }, status=200)
 
 def view_profile(request, target_user_id):
     """View function that returns information about the profile of a specific user"""
     if request.method == "GET":
         requesting_user_id = request.user.id if request.user.is_authenticated else None
-        response, status = services.view_profile(requesting_user_id, target_user_id)
-        return JsonResponse(data=response, status=status)
+        response = services.view_profile(requesting_user_id, target_user_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -114,8 +114,8 @@ def view_profile(request, target_user_id):
 def view_profile_picture(request, user_id):
     """View function that returns the profile picture of a specific user"""
     if request.method == "GET":
-        response, status = services.view_profile_picture(user_id)
-        return JsonResponse(data=response, status=status)
+        response = services.view_profile_picture(user_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -128,8 +128,8 @@ def view_profile_picture(request, user_id):
 def view_following_list(request, user_id):
     """View function that returns the list of users which is followed by a specific user"""
     if request.method == "GET":
-        response, status = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
-        return JsonResponse(data=response, status=status)
+        response = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -142,8 +142,8 @@ def view_following_list(request, user_id):
 def view_follower_list(request, user_id):
     """View function that returns the list of users following a specific user"""
     if request.method == "GET":
-        response, status = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
-        return JsonResponse(data=response, status=status)
+        response = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -156,8 +156,8 @@ def view_follower_list(request, user_id):
 def view_followed_tags(request):
     """View function that returns the list of tags which is followed by the requesting user"""
     if request.method == "GET":
-        response, status = services.view_followed_tags(requesting_user_id=request.user.id)
-        return JsonResponse(data=response, status=status)
+        response = services.view_followed_tags(requesting_user_id=request.user.id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -170,8 +170,8 @@ def view_followed_tags(request):
 def view_followed_categories(request):
     """View function that returns the list of categories which is followed by the requesting user"""
     if request.method == "GET":
-        response, status = services.view_followed_categories(requesting_user_id=request.user.id)
-        return JsonResponse(data=response, status=status)
+        response = services.view_followed_categories(requesting_user_id=request.user.id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -184,8 +184,8 @@ def view_followed_categories(request):
 def view_bookmarked_articles(request):
     """View function that returns the list of articles which is bookmarked by the requesting user"""
     if request.method == "GET":
-        response, status = services.view_bookmarked_articles(requesting_user_id=request.user.id)
-        return JsonResponse(data=response, status=status)
+        response = services.view_bookmarked_articles(requesting_user_id=request.user.id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -198,7 +198,8 @@ def view_bookmarked_articles(request):
 def view_update_profile_settings(request):
     """View function that either returns or updates the profile settings of the requesting user"""
     if request.method == "GET":
-        response, status = services.view_profile_settings(request.user.id)
+        response = services.view_profile_settings(request.user.id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     elif request.method == "PUT":
         try:
             update_data = json.loads(request.body)
@@ -210,7 +211,9 @@ def view_update_profile_settings(request):
                     "type": "error"
                 }
             }, status=400)
-        response, status = services.update_profile_settings(request.user.id, update_data)
+        response = services.update_profile_settings(request.user.id, update_data)
+        FIRST_MESSAGE_INDEX = 0
+        return JsonResponse(data=response, status=response["messages"][FIRST_MESSAGE_INDEX]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -218,13 +221,13 @@ def view_update_profile_settings(request):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
 def view_update_ui_customization_settings(request):
     """View function that either returns or updates the user interface customization settings of the requesting user"""
     if request.method == "GET":
-        response, status = services.view_ui_customization_settings(request.user.id)
+        response = services.view_ui_customization_settings(request.user.id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     elif request.method == "PUT":
         try:
             update_data = json.loads(request.body)
@@ -236,7 +239,9 @@ def view_update_ui_customization_settings(request):
                     "type": "error"
                 }
             }, status=400)
-        response, status = services.update_ui_customization_settings(request.user.id, update_data)
+        response = services.update_ui_customization_settings(request.user.id, update_data)
+        FIRST_MESSAGE_INDEX = 0
+        return JsonResponse(data=response, status=response["messages"][FIRST_MESSAGE_INDEX]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -244,15 +249,14 @@ def view_update_ui_customization_settings(request):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
 def subscribe_or_unsubscribe(request):
     """View function that handles the request about subscription/unsubscription of the requesting user"""
     if request.method == "POST":
-        response, status = services.subscribe_user(request.user.id)
+        response = services.subscribe_user(request.user.id)
     elif request.method == "DELETE":
-        response, status = services.unsubscribe_user(request.user.id)
+        response = services.unsubscribe_user(request.user.id)
     else:
         return JsonResponse(data={
             "message": {
@@ -260,16 +264,16 @@ def subscribe_or_unsubscribe(request):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=status)
+    return JsonResponse(data=response, status=response["message"]["status"])
 
 
 @login_required(login_url="users:login")
 def follow_or_unfollow(request, target_user_id):
     """View the function that handles the request about requesting user following/unfollowing a specific user"""
     if request.method == "POST":
-        response, status = services.follow_user(request.user.id, target_user_id)
+        response = services.follow_user(request.user.id, target_user_id)
     elif request.method == "DELETE":
-        response, status = services.unfollow_user(request.user.id, target_user_id)
+        response = services.unfollow_user(request.user.id, target_user_id)
     else:
         return JsonResponse(data={
             "message": {
@@ -277,5 +281,5 @@ def follow_or_unfollow(request, target_user_id):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=status)
+    return JsonResponse(data=response, status=response["message"]["status"])
 

@@ -1,4 +1,4 @@
-from users.services import get_user_by_id
+from users.services import get_user_by_id_helper
 from .models import Post, Comment
 from articles.models import Article
 from . import serializers as post_serializers
@@ -13,10 +13,11 @@ def get_post_by_id_helper(post_id):
         return {
             "message": {
                 "content": "Post with the given id is not found.",
-                "type": "error"
+                "type": "error",
+                "status": 404
             },
             "post": None
-        }, 404
+        }
 
 def get_post_by_id(post_id):
     post = Post.objects.filter(id=post_id).first()
@@ -24,48 +25,59 @@ def get_post_by_id(post_id):
         return {
             "message": {
                 "content": "Post with the given id is retrieved successfully.",
-                "type": "success"
+                "type": "success",
+                "status": 200
             },
             "post": post
-        }, 200
+        }
     else:
         return {
             "message": {
                 "content": "Post with the given id is not found.",
-                "type": "error"
+                "type": "error",
+                "status": 404
             }
-        }, 404
+        }
 
 def update_post_by_id(requesting_user_id, post_id, update_data):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
     requesting_user = response["user"]
 
     post = Post.objects.filter(id=post_id).first()
     if not post:
         return {
-            "message": {
-                "content": "Post with the given id can not be found.",
-                "type": "error"
-            }
-        }, 404
+            "messages": [
+                {
+                    "content": "Post with the given id can not be found.",
+                    "type": "error",
+                    "status": 404
+                }
+            ]
+        }
 
     if post.is_created_by(requesting_user) == False:
         return {
-            "message": {
-                "content": "You're not authorized to update this post.",
-                "type": "error"
-            }
-        }, 401
+            "messages": [
+                {
+                    "content": "You're not authorized to update this post.",
+                    "type": "error",
+                    "status": 401
+                }
+            ]
+        }
 
     if post.is_update_time_over():
         return {
-            "message": {
-                "content": f"You can not update a post after {Post.UPDATE_TIME_LIMIT_IN_SECONDS} seconds.",
-                "type": "error"
-            }
-        }, 400
+            "messages": [
+                {
+                    "content": f"You can not update a post after {Post.UPDATE_TIME_LIMIT_IN_SECONDS} seconds.",
+                    "type": "error",
+                    "status": 400
+                }
+            ]
+        }
 
     content = update_data.get("content")
     referenced_article_id = update_data.get("referenced_article_id")
@@ -142,9 +154,9 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
         }
 
 def delete_post_by_id(requesting_user_id, post_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
     requesting_user = response["user"]
 
     post = Post.objects.filter(id=post_id).first()
@@ -152,25 +164,28 @@ def delete_post_by_id(requesting_user_id, post_id):
         return {
             "message": {
                 "content": "Post with the given id can not be found.",
-                "type": "error"
+                "type": "error",
+                "status": 404
             }
-        }, 404
+        }
 
     if requesting_user.is_superuser or post.is_created_by(requesting_user):
         post.delete()
         return {
             "message": {
                 "content": "Post is deleted successfully.",
-                "type": "success"
+                "type": "success",
+                "status": 200
             }
-        }, 200
+        }
     else:
         return {
             "message": {
                 "content": "You're not authorized to delete this post.",
-                "type": "error"
+                "type": "error",
+                "status": 401
             }
-        }, 401
+        }
 
 def get_comment_by_id(comment_id):
     comment = Comment.objects.filter(id=comment_id).first()
@@ -179,27 +194,29 @@ def get_comment_by_id(comment_id):
         return {
             "message": {
                 "content": "Comment with the given id is retrieved successfully.",
-                "type": "success"
+                "type": "success",
+                "status": 200
             },
             "comment": post_serializers.serialize_comment(comment)
-        }, 200
+        }
     else:
         return {
             "message": {
                 "content": "Comment with the given id can not be found.",
-                "type": "error"
+                "type": "error",
+                "status": 404
             },
-        }, 404
+        }
 
 def create_comment(user_id, post_id, create_data):
-    response, status = get_user_by_id(user_id)
+    response = get_user_by_id_helper(user_id)
     if not response["user"]:
-        return response, status
+        return response
     user = response["user"]
 
-    response, status = get_post_by_id_helper(post_id)
+    response = get_post_by_id_helper(post_id)
     if not response["post"]:
-        return response, status
+        return response
     post = response["post"]
 
     parent_comment_id = create_data.get("parent_comment_id")
@@ -209,9 +226,10 @@ def create_comment(user_id, post_id, create_data):
         return {
             "message": {
                 "content": "There is not content given for the comment to be created.",
-                "type": "error"
+                "type": "error",
+                "status": 400
             }
-        }, 400
+        }
 
     # if parent_comment_id is provided, check its existence, else assume that there is no parent_comment
     parent_comment = None
@@ -221,18 +239,20 @@ def create_comment(user_id, post_id, create_data):
             return {
                 "message": {
                     "content": "There is no parent comment with the given id.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 404
                 }
-            }, 404
+            }
 
     content_valid, content_error_message = Comment.is_content_valid(content)
     if not content_valid:
         return {
             "message": {
                 "content": f"Invalid comment content: {content_error_message}",
-                "type": "error"
+                "type": "error",
+                "status": 400
             }
-        }, 400
+        }
 
     new_comment = Comment.objects.create(
         owner=user,
@@ -245,15 +265,16 @@ def create_comment(user_id, post_id, create_data):
     return {
         "message": {
             "content": "Comment created successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "comment": post_serializers.serialize_comment(new_comment)
     }
 
 def delete_comment_by_id(requesting_user_id, comment_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
     requesting_user = response["user"]
 
     comment = Comment.objects.filter(id=comment_id).first()
@@ -261,24 +282,27 @@ def delete_comment_by_id(requesting_user_id, comment_id):
         return {
             "message": {
                 "content": "There is no comment with the given id.",
-                "type": "error"
+                "type": "error",
+                "status": 404
             }
-        }, 404
+        }
 
     if requesting_user.is_superuser or comment.is_created_by(requesting_user):
         comment.delete()
         return {
             "message": {
                 "content": "Comment is deleted successfully.",
-                "type": "success"
+                "type": "success",
+                "status": 200
             }
-        }, 200
+        }
     else:
         return {
             "message": {
                 "content": "You're not authorized to delete this comment.",
-                "type": "error"
+                "type": "error",
+                "status": 401
             }
-        }, 401
+        }
 
 

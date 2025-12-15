@@ -10,20 +10,26 @@ from articles import serializers as article_serializers
 from news_backend import settings
 from datetime import datetime
 
-def get_user_by_id(id, user_type="Requesting"):
+def get_user_by_id_helper(id, user_type="Requesting"):
     user = User.objects.filter(id=id).first()
     if user:
         return {
+            "message": {
+                "content": user_type + " " + "user with the given id retrieved successfully",
+                "type": "success",
+                "status": 200
+            },
             "user": user
-        }, 200
+        }
     else:
         return {
             "message": {
                 "content": "User with the given id is not found.",
-                "type": "error"
+                "type": "error",
+                "status": 404
             },
             "user": None
-        }, 404
+        }
 
 
 def register_user(register_data):
@@ -46,44 +52,50 @@ def register_user(register_data):
 
     # Check if the required fields are not empty
     if username is None:
-        return {"message": {"content": "User Name field can not be empty.", "type": "error"}}, 400
+        return {"message": {"content": "User Name field can not be empty.", "type": "error", "status": 400}}
     if password is None:
-        return {"message": {"content": "Password field can not be empty.", "type": "error"}}, 400
+        return {"message": {"content": "Password field can not be empty.", "type": "error", "status": 400}}
     if password_repeat is None:
-        return {"message": {"content": "Password must be repeated for validaton.", "type": "error"}}, 400
+        return {"message": {"content": "Password must be repeated for validaton.", "type": "error", "status": 400}}
     if first_name is None:
-        return {"message": {"content": "First Name field can not be empty.", "type": "error"}}, 400
+        return {"message": {"content": "First Name field can not be empty.", "type": "error", "status": 400}}
     if last_name is None:
-        return {"message": {"content": "Last Name field can not be empty.", "type": "error"}}, 400
+        return {"message": {"content": "Last Name field can not be empty.", "type": "error", "status": 400}}
     if email is None:
-        return {"message": {"content": "Email field can not be empty.", "type": "error"}}, 400
+        return {"message": {"content": "Email field can not be empty.", "type": "error", "status": 400}}
     if country is None:
-        return {"message": {"content": "Location field can not be empty.", "type": "error"}}, 400
+        return {"message": {"content": "Location field can not be empty.", "type": "error", "status": 400}}
     if birth_date_str is None:
-        return {"message": {"content": "Birth date field can not be empty.", "type": "error"}}, 400
+        return {"message": {"content": "Birth date field can not be empty.", "type": "error", "status": 400}}
 
     # Check if username and email are unique:
     if User.objects.filter(username=username).exists():
-        return {"message": {"content": "This user name is already used by an existing account.", "type": "error"}}, 400
+        return {"message": {
+            "content": "This user name is already used by an existing account.", "type": "error", "status": 400
+        }}
     if User.objects.filter(email=email).exists():
-        return {"message": {"content": "This email is already used by an existing account.", "type": "error"}}, 400
+        return {"message": {
+            "content": "This email is already used by an existing account.", "type": "error", "status": 400
+        }}
 
     # Check if username and password are valid
     if not User.is_username_valid(username):
-        return {"message": {"content": "Invalid user name.", "type": "error"}}, 400
+        return {"message": {"content": "Invalid user name.", "type": "error", "status": 400}}
     if not User.is_password_valid(password):
-        return {"message": {"content": "Invalid password.", "type": "error"}}, 400
+        return {"message": {"content": "Invalid password.", "type": "error", "status": 400}}
 
     # Check if the repeated password matches with first password
     if password != password_repeat:
-        return {"message": {"content": "Repeated password is different.", "type": "error"}}, 400
+        return {"message": {"content": "Repeated password is different.", "type": "error", "status": 400}}
 
     if not User.is_birth_date_valid(birth_date_str):
         return {"message":
-                    {"content": f"Invalid birth date. Accepted format is: {settings.DATE_INPUT_FORMATS[0]}",
-                     "type": "error"
-                     }
-                }, 400
+                    {
+                        "content": f"Invalid birth date. Accepted format is: {settings.DATE_INPUT_FORMATS[0]}",
+                        "type": "error",
+                        "status": 400
+                    }
+                }
 
     # Create the user and set the required & optional fields
     new_user = User.objects.create_user(username=username,
@@ -95,30 +107,32 @@ def register_user(register_data):
                                     birth_date=datetime.strptime(birth_date_str, settings.DATE_INPUT_FORMATS[0]).date(),
                                     gender=gender)
     new_user.save()
-    create_profile_for_new_user(new_user)
+    create_profile_for_new_user_helper(new_user)
     login(request=request, user=new_user)
     return {
         "message": {
             "content": "User created successfully",
-            "type": "success"},
+            "type": "success",
+            "status": 201
+        },
         "user_id": new_user.id,
         "redirect_url": ""
-    }, 201
+    }
 
-def create_profile_for_new_user(user):
+def create_profile_for_new_user_helper(user):
     user_profile = UserProfile.objects.create(user=user)
     user_profile.save()
 
 def view_following_list(requesting_user_id, target_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
 
-    response, status = get_user_by_id(target_user_id, user_type="Target")
+    response = get_user_by_id_helper(target_user_id, user_type="Target")
     if not response["user"]:
-        return response, status
+        return response
 
     target_user = response["user"]
     following_list = target_user.following_list.all()
@@ -130,22 +144,23 @@ def view_following_list(requesting_user_id, target_user_id):
     return {
         "message": {
             "content": "The list of followed users is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "following_count": following_count,
         "following_list": sorted_following_list
-    }, 200
+    }
 
 def view_follower_list(requesting_user_id, target_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
 
-    response, status = get_user_by_id(target_user_id, user_type="Target")
+    response = get_user_by_id_helper(target_user_id, user_type="Target")
     if not response["user"]:
-        return response, status
+        return response
 
     target_user = response["user"]
     followers = target_user.followers.all()
@@ -157,16 +172,17 @@ def view_follower_list(requesting_user_id, target_user_id):
     return {
         "message": {
             "content": "The list of followers is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "follower_count": follower_count,
         "followers": sorted_followers
-    }, 200
+    }
 
 def view_followed_tags(requesting_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
     sorted_followed_tags = requesting_user.get_sorted_followed_tags()
@@ -175,15 +191,16 @@ def view_followed_tags(requesting_user_id):
     return {
         "message": {
             "content": "The list of followed tags is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "followed_tags": sorted_followed_tags
-    }, 200
+    }
 
 def view_followed_categories(requesting_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
     sorted_followed_categories = requesting_user.get_sorted_followed_categories()
@@ -193,15 +210,16 @@ def view_followed_categories(requesting_user_id):
     return {
         "message": {
             "content": "The list of followed categories is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "followed_categories": sorted_followed_categories
-    }, 200
+    }
 
 def view_bookmarked_articles(requesting_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
     sorted_bookmarked_articles = requesting_user.get_sorted_bookmarked_articles()
@@ -211,150 +229,162 @@ def view_bookmarked_articles(requesting_user_id):
     return {
         "message": {
             "content": "The list of bookmarked articles is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "bookmarked_articles": sorted_bookmarked_articles
-    }, 200
+    }
 
 def subscribe_user(requesting_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
     if requesting_user.profile.is_premium():
         return {
             "message": {
                 "content": "Your account has already been premium.",
-                "type": "warning"
+                "type": "warning",
+                "status": 200
             }
-        }, 200
+        }
 
     premium_group = Group.objects.get_or_create(name="premium")
     requesting_user.groups.add(premium_group)
     return {
         "message": {
             "content": "Your account is upgraded to premium successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "redirect_url": ""
-    }, 200
+    }
 
 
 def unsubscribe_user(requesting_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
     if not requesting_user.profile.is_premium():
         return {
             "message": {
                 "content": "Your account has already been not premium.",
-                "type": "warning"
+                "type": "warning",
+                "status": 200
             }
-        }, 200
+        }
 
     premium_group = Group.objects.get_or_create(name="premium")
     requesting_user.groups.remove(premium_group)
     return {
         "message": {
             "content": "Your subscription has been terminated successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "redirect_url": ""
-    }, 200
+    }
 
 def follow_user(requesting_user_id, target_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
 
-    response, status = get_user_by_id(target_user_id, user_type="Target")
+    response = get_user_by_id_helper(target_user_id, user_type="Target")
     if not response["user"]:
-        return response, status
+        return response
 
     target_user = response["user"]
     if requesting_user.follows_user(target_user):
         return {
             "message": {
                 "content": "You're already following this user.",
-                "type": "warning"
+                "type": "warning",
+                "status": 200
             }
-        }, 200
+        }
     else:
         requesting_user.followers.add(target_user)
         return {
             "message": {
                 "content": "User is followed successfully.",
-                "type": "success"
+                "type": "success",
+                "status": 200
             }
-        }, 200
+        }
 
 
 def unfollow_user(requesting_user_id, target_user_id):
-    response, status = get_user_by_id(requesting_user_id)
+    response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     requesting_user = response["user"]
 
-    response, status = get_user_by_id(target_user_id, "Target")
+    response = get_user_by_id_helper(target_user_id, "Target")
     if not response["user"]:
-        return response, status
+        return response
 
     target_user = response["user"]
     if requesting_user.follows_user(target_user):
-        requesting_user.followers.remove(target_user)
+        requesting_user.following_list.remove(target_user)
         return {
             "message": {
                 "content": "User is unfollowed successfully.",
-                "type": "warning"
+                "type": "success",
+                "status": 200
             }
-        }, 200
+        }
     else:
-        requesting_user.followers.add(target_user)
         return {
             "message": {
                 "content": "You're not following this user already.",
-                "type": "success"
+                "type": "warning",
+                "status": 200
             }
-        }, 200
+        }
 
 def view_profile_picture(target_user_id):
-    response, status = get_user_by_id(target_user_id, user_type="Target")
+    response = get_user_by_id_helper(target_user_id, user_type="Target")
     if not response["user"]:
-        return response, status
+        return response
 
     target_user = response["user"]
     avatar = target_user.profile.avatar
     return {
         "message": {
             "content": "Profile picture is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "profile_picture_url": avatar.url if avatar else None
-    }, 200
+    }
 
 def view_profile_settings(user_id):
-    response, status = get_user_by_id(user_id)
+    response = get_user_by_id_helper(user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     user = response["user"]
     profile = user.profile
     return {
-        "message": "Profile settings are retrieved successfully.",
-        "type": "success",
+        "message": {
+            "content": "Profile settings are retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
         "profile_settings": user_serializers.serialize_user_profile(profile)
-    }, 200
+    }
 
 def update_profile_settings(user_id, update_data):
-    response, status = get_user_by_id(user_id)
+    response = get_user_by_id_helper(user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     user = response["user"]
     profile = user.profile
@@ -371,16 +401,18 @@ def update_profile_settings(user_id, update_data):
             return {
                 "message": {
                     "content": "This user name is already used by another account.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
         elif not User.is_username_valid(username):
             return {
                 "message": {
                     "content": "Invalid username.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
         else:
             user.username = username
             user.save()
@@ -400,9 +432,10 @@ def update_profile_settings(user_id, update_data):
             return {
                 "message": {
                     "content": f"Invalid birth date. Accepted format is: {settings.DATE_INPUT_FORMATS[0]}",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
 
     if gender and gender != user.gender:
         if User.is_gender_valid(gender):
@@ -412,9 +445,10 @@ def update_profile_settings(user_id, update_data):
             return {
                 "message": {
                     "content": "Invalid gender.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
 
     if profile_bio and profile_bio != profile_bio:
         profile.bio = profile_bio
@@ -423,30 +457,32 @@ def update_profile_settings(user_id, update_data):
     return {
         "message": {
             "content": "Profile settings are updated successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "profile_settings": user_serializers.serialize_user_profile(profile)
-    }, 200
+    }
 
 def view_ui_customization_settings(user_id):
-    response, status = get_user_by_id(user_id)
+    response = get_user_by_id_helper(user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     user = response["user"]
     ui_customization_json = user_serializers.serialize_ui_customization(user.customization)
     return {
         "message": {
             "content": "UI customization setting is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "customization": ui_customization_json
-    }, 200
+    }
 
 def update_ui_customization_settings(user_id, update_data):
-    response, status = get_user_by_id(user_id)
+    response = get_user_by_id_helper(user_id)
     if not response["user"]:
-        return response, status
+        return response
 
     user = response["user"]
     customization = user.customization
@@ -464,9 +500,10 @@ def update_ui_customization_settings(user_id, update_data):
             return {
                 "message": {
                     "content": "Invalid theme.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
     if font_type:
         if UserCustomization.is_font_type_valid(font_type):
             customization.font_type = font_type
@@ -475,9 +512,10 @@ def update_ui_customization_settings(user_id, update_data):
             return {
                 "message": {
                     "content": "Invalid font type.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
     if font_size_str:
         if UserCustomization.is_font_size_valid(font_size_str):
             customization.font_size = int(font_size_str)
@@ -486,9 +524,10 @@ def update_ui_customization_settings(user_id, update_data):
             return {
                 "message": {
                     "content": "Invalid font size.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
     if font_colour:
         if UserCustomization.is_font_colour_valid(font_colour):
             customization.font_colour = font_colour
@@ -497,30 +536,32 @@ def update_ui_customization_settings(user_id, update_data):
             return {
                 "message": {
                     "content": "Invalid font colour.",
-                    "type": "error"
+                    "type": "error",
+                    "status": 400
                 }
-            }, 400
+            }
 
     return {
         "message": {
             "content": "UI customization settings are updated successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "ui_customization": user_serializers.serialize_ui_customization(customization)
-    }, 200
+    }
 
 def view_profile(requesting_user_id, target_user_id):
     requesting_user = None
     if requesting_user_id:
-        response, status = get_user_by_id(target_user_id)
+        response = get_user_by_id_helper(target_user_id)
         if response["user"]:
             requesting_user = response["user"]
         else:
-            return response, status
+            return response
 
-    response, status = get_user_by_id(target_user_id, user_type="Target")
+    response = get_user_by_id_helper(target_user_id, user_type="Target")
     if not response["user"]:
-        return response, status
+        return response
 
     target_user = response["user"]
     target_profile = target_user.profile
@@ -528,8 +569,9 @@ def view_profile(requesting_user_id, target_user_id):
     return {
         "message": {
             "content": "User profile is retrieved successfully.",
-            "type": "success"
+            "type": "success",
+            "status": 200
         },
         "profile": user_serializers.serialize_user_profile(target_profile),
         "target_user_followed": requesting_user.follows_user(target_user) if requesting_user else False
-    }, 200
+    }

@@ -25,8 +25,8 @@ def create_comment(request, post_id):
                     "type": "error"
                 },
             }, status=400)
-        response, status = post_services.create_comment(request.user.id, post_id, create_data)
-        return JsonResponse(data=response, status=status)
+        response = post_services.create_comment(request.user.id, post_id, create_data)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -39,7 +39,8 @@ def create_comment(request, post_id):
 def view_update_delete_post(request, post_id):
     """View function that handles the request for a user to view/update/delete a specific post"""
     if request.method == "GET":
-        response, status =  post_services.get_post_by_id(post_id)
+        response = post_services.get_post_by_id(post_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     elif request.method == "PUT":
         try:
             update_data = json.loads(request.body)
@@ -50,9 +51,12 @@ def view_update_delete_post(request, post_id):
                     "type": "error"
                 },
             }, status=400)
-        response, status = post_services.update_post_by_id(request.user.id, post_id, update_data)
+        response = post_services.update_post_by_id(request.user.id, post_id, update_data)
+        FIRST_MESSAGE_INDEX = 0
+        return JsonResponse(data=response, status=response["messages"][FIRST_MESSAGE_INDEX]["status"])
     elif request.method == "DELETE":
-        response, status = post_services.delete_post_by_id(request.user.id, post_id)
+        response = post_services.delete_post_by_id(request.user.id, post_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
@@ -60,15 +64,14 @@ def view_update_delete_post(request, post_id):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
 def view_delete_comment(request, post_id):
     """View function that handles the request for a user to view/delete a specific comment"""
     if request.method == "GET":
-        response, status = post_services.get_comment_by_id(post_id)
+        response = post_services.get_comment_by_id(post_id)
     elif request.method == "DELETE":
-        response, status = post_services.delete_comment_by_id(request.user.id, post_id)
+        response = post_services.delete_comment_by_id(request.user.id, post_id)
     else:
         return JsonResponse(data={
             "message": {
@@ -76,7 +79,7 @@ def view_delete_comment(request, post_id):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=status)
+    return JsonResponse(data=response, status=response["message"]["status"])
 
 @login_required(login_url="users:login")
 def create_view_update_delete_reaction_to_post(request, post_id):
