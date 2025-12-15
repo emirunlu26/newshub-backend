@@ -10,7 +10,27 @@ import json
 @login_required(login_url="users:login")
 def create_post(request):
     """View function that handles the request for a user to create a post"""
-    pass
+    if request.method == "POST":
+        try:
+            create_data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON",
+                    "type": "error"
+                },
+            }, status=400)
+        create_data["images"] = request.FILES.getList("images")
+        response = post_services.create_post(request.user.id, create_data)
+        FIRST_MESSAGE_INDEX = 0
+        return JsonResponse(data=response, status=response["messages"][FIRST_MESSAGE_INDEX]["status"])
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "POST request required.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def create_comment(request, post_id):

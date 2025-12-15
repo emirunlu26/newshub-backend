@@ -47,7 +47,7 @@ class Post(models.Model):
         return delta.seconds > Post.UPDATE_TIME_LIMIT_IN_SECONDS
 
 class PostImage(models.Model):
-    DEFAULT_RANK = -1 # no ranked assigned value
+    DEFAULT_RANK = -1 # indicator for having no rank
     post = models.ForeignKey(to=Post, on_delete=models.CASCADE, related_name="images", verbose_name="Post")
     image = models.ImageField(upload_to="post_images/", verbose_name="Image")
     rank = models.IntegerField(default=DEFAULT_RANK, verbose_name="Rank of Image in Post")
