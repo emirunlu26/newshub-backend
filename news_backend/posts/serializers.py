@@ -56,7 +56,7 @@ def serialize_post_reaction(post_reaction):
         "user_id": post_reaction.reaction_owner.id,
         "reaction": {
             "name": reaction_content.name,
-            "icon": reaction_icon.url if reaction_icon.url else None
+            "icon": reaction_icon.url if reaction_icon else None
         },
         "created_at": post_reaction.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
     }
@@ -103,7 +103,7 @@ def serialize_comment_reaction(comment_reaction):
         "user_id": comment_reaction.reaction_owner.id,
         "reaction": {
             "name": reaction_content.name,
-            "icon": reaction_icon.url if reaction_icon.url else None
+            "icon": reaction_icon.url if reaction_icon else None
         },
         "created_at": comment_reaction.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
     }

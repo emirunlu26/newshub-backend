@@ -142,7 +142,7 @@ def create_view_update_delete_reaction_to_post(request, post_id):
     else:
         return JsonResponse(data={
             "message": {
-                "content": "Only POS/GET/PUT/DELETE requests are allowed.",
+                "content": "Only POST/GET/PUT/DELETE requests are allowed.",
                 "type": "error"
             }
         }, status=405)

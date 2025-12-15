@@ -1,5 +1,5 @@
 from users.services import get_user_by_id_helper
-from .models import Post, PostImage, PostReaction, Comment, CommentReaction
+from .models import Post, PostImage, PostReaction, Comment, CommentReaction, Reaction
 from articles.models import Article
 from . import serializers as post_serializers
 
@@ -516,6 +516,62 @@ def delete_reaction_to_post(requesting_user_id, post_id):
         }
     }
 
+def create_reaction_to_post(requesting_user_id, post_id, update_data):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_post_by_id_helper(post_id)
+    if not response["post"]:
+        return response
+    reacted_post = response["post"]
+
+    already_reacted = PostReaction.objects.filter(reaction_owner=requesting_user, post=reacted_post).exists()
+    if already_reacted:
+        return {
+            "message": {
+                "content": "This user has already reacted to this post.",
+                "type": "error",
+                "status": 409
+            }
+        }
+
+    new_reaction_name = update_data.get("new_reaction_name")
+
+    if not new_reaction_name or not type(new_reaction_name) is str:
+        return {
+            "message": {
+                "content": "No name or wrong type of name for the new reaction is given.",
+                "type": "error",
+                "status": 400
+            }
+        }
+
+    new_reaction_content = Reaction.objects.filter(name=new_reaction_name).first()
+    if not new_reaction_content:
+        return {
+            "message": {
+                "content": "There is no reaction defined with the given name.",
+                "type": "error",
+                "status": 404
+            }
+        }
+
+    new_post_reaction = PostReaction.objects.create(
+        post=reacted_post,
+        reaction=new_reaction_content,
+        reaction_owner=requesting_user
+    )
+
+    return {
+        "message": {
+            "content": "Reaction to the post is created successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "post_reaction": post_serializers.serialize_post_reaction(new_post_reaction)
+    }
 
 
 def get_reactions_to_comment(requesting_user_id, comment_id):
@@ -538,6 +594,64 @@ def get_reactions_to_comment(requesting_user_id, comment_id):
             "status": 200
         },
         "reactions": [post_serializers.serialize_comment_reaction(reaction) for reaction in sorted_reactions]
+    }
+
+
+def create_reaction_to_comment(requesting_user_id, comment_id, update_data):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_comment_by_id_helper(comment_id)
+    if not response["comment"]:
+        return response
+    reacted_comment = response["comment"]
+
+    already_reacted = CommentReaction.objects.filter(reaction_owner=requesting_user, comment=reacted_comment).exists()
+    if already_reacted:
+        return {
+            "message": {
+                "content": "This user has already reacted to this comment.",
+                "type": "error",
+                "status": 409
+            }
+        }
+
+    new_reaction_name = update_data.get("new_reaction_name")
+
+    if not new_reaction_name or not type(new_reaction_name) is str:
+        return {
+            "message": {
+                "content": "No name or wrong type of name for the new reaction is given.",
+                "type": "error",
+                "status": 400
+            }
+        }
+
+    new_reaction_content = Reaction.objects.filter(name=new_reaction_name).first()
+    if not new_reaction_content:
+        return {
+            "message": {
+                "content": "There is no reaction defined with the given name.",
+                "type": "error",
+                "status": 400
+            }
+        }
+
+    new_comment_reaction = CommentReaction.objects.create(
+        comment=reacted_comment,
+        reaction=new_reaction_content,
+        reaction_owner=requesting_user
+    )
+
+    return {
+        "message": {
+            "content": "Reaction to the comment is updated successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "comment_reaction": post_serializers.serialize_comment_reaction(new_comment_reaction)
     }
 
 def delete_reaction_to_comment(requesting_user_id, comment_id):
