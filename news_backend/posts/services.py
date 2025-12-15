@@ -138,10 +138,15 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
     else:
         if "content" in check_dict["valid_update_data"]:
             post.content = check_dict["valid_update_data"]["content"]
+
         if "referenced_article" in check_dict["valid_update_data"]:
             post.referenced_article = check_dict["valid_update_data"]["referenced_article"]
+
         if "referenced_post" in check_dict["valid_update_data"]:
             post.referenced_post = check_dict["valid_update_data"]["referenced_post"]
+
+        # Save updates
+        post.save()
 
         return {
             "messages": [

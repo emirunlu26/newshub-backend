@@ -104,12 +104,6 @@ class User(AbstractUser):
             return False
         return user.followers.filter(id=self.id).exists()
 
-
-
-
-
-
-
 class Author(models.Model):
     user = models.OneToOneField(to=User, on_delete=models.CASCADE, verbose_name="User")
     slug = models.CharField(max_length=50, unique=True, verbose_name="Slug")

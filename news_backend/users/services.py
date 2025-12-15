@@ -396,72 +396,99 @@ def update_profile_settings(user_id, update_data):
     gender = update_data.get("gender")
     profile_bio = update_data.get("profile_bio")
 
+    check_dict = {
+        "error_messages": [],
+        "valid_update_data": {}
+    }
+
     if username and user.username != username:
         if User.objects.filter(username=username).exists():
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": "This user name is already used by another account.",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
         elif not User.is_username_valid(username):
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": "Invalid username.",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
         else:
-            user.username = username
-            user.save()
+            check_dict["valid_update_data"]["username"] = username
 
     if first_name and first_name != user.first_name:
-        user.first_name = first_name
-        user.save()
+        check_dict["valid_update_data"]["first_name"] = first_name
     if last_name and last_name != user.last_name:
-        user.last_name = last_name
-        user.save()
+        check_dict["valid_update_data"]["last_name"] = last_name
     if birth_date_str:
         if User.is_birth_date_valid(birth_date_str):
             birth_date = datetime.strptime(birth_date_str, settings.DATE_INPUT_FORMATS[0]).date()
-            user.birth_date = birth_date
-            user.save()
+            check_dict["valid_update_data"]["birth_date"] = birth_date
         else:
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": f"Invalid birth date. Accepted format is: {settings.DATE_INPUT_FORMATS[0]}",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
 
     if gender and gender != user.gender:
         if User.is_gender_valid(gender):
-            user.gender = gender
-            user.save()
+            check_dict["valid_update_data"]["gender"] = gender
         else:
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": "Invalid gender.",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
 
     if profile_bio and profile_bio != profile_bio:
-        profile.bio = profile_bio
+        check_dict["valid_update_data"]["profile_bio"] = profile_bio
+
+    # If there is any error, return all error messages. Otherwise, update data with the validated data.
+    if check_dict["error_messages"]:
+        return {
+            "messages": check_dict["error_messages"]
+        }
+    else:
+        if "username" in check_dict["valid_update_data"]:
+            user.username = check_dict["valid_update_data"]["username"]
+
+        if "first_name" in check_dict["valid_update_data"]:
+            user.first_name = check_dict["valid_update_data"]["first_name"]
+
+        if "last_name" in check_dict["valid_update_data"]:
+            user.last_name = check_dict["valid_update_data"]["last_name"]
+
+        if "birth_date" in check_dict["valid_update_data"]:
+            user.birth_date = check_dict["valid_update_data"]["birth_date"]
+
+        if "gender" in check_dict["valid_update_data"]:
+            user.gender = check_dict["valid_update_data"]["gender"]
+
+        if "profile_bio" in check_dict["valid_update_data"]:
+            profile.bio = check_dict["valid_update_data"]["profile_bio"]
+
+        # Save updates
+        user.save()
         profile.save()
 
-    return {
-        "message": {
-            "content": "Profile settings are updated successfully.",
-            "type": "success",
-            "status": 200
-        },
-        "profile_settings": user_serializers.serialize_user_profile(profile)
-    }
+        return {
+            "message": {
+                "content": "Profile settings are updated successfully.",
+                "type": "success",
+                "status": 200
+            },
+            "profile_settings": user_serializers.serialize_user_profile(profile)
+        }
 
 def view_ui_customization_settings(user_id):
     response = get_user_by_id_helper(user_id)
@@ -492,63 +519,86 @@ def update_ui_customization_settings(user_id, update_data):
     font_size_str = update_data.get("font_size")
     font_colour = update_data.get("font_colour")
 
+    check_dict = {
+        "error_messages": [],
+        "valid_update_data": {}
+    }
+
     if theme and theme != customization.theme:
         if UserCustomization.is_theme_valid(theme):
-            customization.theme = theme
-            customization.save()
+            check_dict["valid_update_data"]["theme"] = theme
         else:
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": "Invalid theme.",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
     if font_type:
         if UserCustomization.is_font_type_valid(font_type):
-            customization.font_type = font_type
-            customization.save()
+            check_dict["valid_update_data"]["font_type"] = font_type
         else:
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": "Invalid font type.",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
+
     if font_size_str:
         if UserCustomization.is_font_size_valid(font_size_str):
-            customization.font_size = int(font_size_str)
-            customization.save()
+            check_dict["valid_update_data"]["font_size"] = int(font_size_str)
         else:
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": "Invalid font size.",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
     if font_colour:
         if UserCustomization.is_font_colour_valid(font_colour):
-            customization.font_colour = font_colour
-            customization.save()
+            check_dict["valid_update_data"]["font_colour"] = font_colour
         else:
-            return {
-                "message": {
+            check_dict["error_messages"].append(
+                {
                     "content": "Invalid font colour.",
                     "type": "error",
                     "status": 400
                 }
-            }
+            )
 
-    return {
-        "message": {
-            "content": "UI customization settings are updated successfully.",
-            "type": "success",
-            "status": 200
-        },
-        "ui_customization": user_serializers.serialize_ui_customization(customization)
-    }
+    # If there is any error, return all error messages. Otherwise, update data with the validated data.
+    if check_dict["error_messages"]:
+        return {
+            "messages": check_dict["error_messages"]
+        }
+    else:
+        if "theme" in check_dict["valid_update_data"]:
+            customization.theme = check_dict["valid_update_data"]["theme"]
+
+        if "font_type" in check_dict["valid_update_data"]:
+            customization.font_type = check_dict["valid_update_data"]["font_type"]
+
+        if "font_size" in check_dict["valid_update_data"]:
+            customization.font_size = check_dict["valid_update_data"]["font_size"]
+
+        if "font_colour" in check_dict["valid_update_data"]:
+            customization.font_colour = check_dict["valid_update_data"]["font_colour"]
+
+        # Save update
+        customization.save()
+
+        return {
+            "message": {
+                "content": "UI customization settings are updated successfully.",
+                "type": "success",
+                "status": 200
+            },
+            "ui_customization": user_serializers.serialize_ui_customization(customization)
+        }
 
 def view_profile(requesting_user_id, target_user_id):
     requesting_user = None
