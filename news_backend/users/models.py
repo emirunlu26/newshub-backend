@@ -139,8 +139,8 @@ class UserProfile(models.Model):
         return self.user.name
 
     def is_premium(self):
-        PREMIUM = "premium"
-        return self.user.groups.filter(name=PREMIUM).exists()
+        PREMIUM_GROUP_NAME = "premium"
+        return self.user.groups.filter(name=PREMIUM_GROUP_NAME).exists()
 
 class UserCustomization(models.Model):
     THEME_CHOICES = [

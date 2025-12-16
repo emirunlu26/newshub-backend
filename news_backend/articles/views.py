@@ -191,4 +191,15 @@ def follow_or_unfollow_category(request, slug):
 
 @login_required(login_url="users:login")
 def bookmark_or_unbookmark_article(request, id):
-    pass
+    if request.method == "POST":
+        response = services.bookmark_article(request.user.id, id)
+    elif request.method == "DELETE":
+        response = services.unbookmark_article(request.user.id, id)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "Only POST and DELETE requests are allowed.",
+                "type": "error"
+            }
+        }, status=405)
+    return JsonResponse(data=response, status=response["message"]["status"])
