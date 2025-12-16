@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.http import JsonResponse
 from . models import Article
+from . import services
 import json
 
 # Create your views here.
@@ -155,8 +156,23 @@ def get_trending_articles(request):
         }, status=405)
 
 @login_required(login_url="users:login")
-def follow_or_unfollow_tag(request, slug):
+def view_add_delete_reaction_to_article(request, post_id):
     pass
+
+@login_required(login_url="users:login")
+def follow_or_unfollow_tag(request, slug):
+    if request.method == "POST":
+        response = services.follow_tag(request.user.id, slug)
+    elif request.method == "DELETE":
+        response = services.unfollow_tag(request.user.id, slug)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "Only POST and DELETE requests are allowed.",
+                "type": "error"
+            }
+        }, status=405)
+    return JsonResponse(data=response, status=response["message"]["status"])
 
 @login_required(login_url="users:login")
 def follow_or_unfollow_category(request, slug):
@@ -164,8 +180,4 @@ def follow_or_unfollow_category(request, slug):
 
 @login_required(login_url="users:login")
 def bookmark_or_unbookmark_article(request, id):
-    pass
-
-@login_required(login_url="users:login")
-def view_add_delete_reaction_to_article(request, post_id):
     pass

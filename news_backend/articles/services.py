@@ -1,0 +1,84 @@
+from users.services import get_user_by_id_helper
+from models import Tag
+
+def get_tag_by_slug_helper(tag_slug):
+    tag = Tag.objects.filter(slug=tag_slug).first()
+    if tag:
+        return {
+            "tag": tag
+        }
+    else:
+        return {
+            "message": {
+                "content": "Tag with the given slug can not be found.",
+                "type": "error",
+                "status": 404
+            },
+            "tag": None
+        }
+
+def follow_tag(requesting_user_id, tag_slug):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+
+    requesting_user = response["user"]
+
+    response = get_tag_by_slug_helper(tag_slug)
+    if not response["tag"]:
+        return response
+
+    tag = response["tag"]
+
+    tag_followed = requesting_user.followed_tags.filter(tag=tag).exists()
+    if tag_followed:
+        return {
+            "message": {
+                "content": "This user already follows the tag with the given slug.",
+                "type": "warning",
+                "status": 200
+            }
+        }
+
+    requesting_user.followed_tags.add(tag)
+
+    return {
+        "message": {
+            "content": "Tag with the given slug is followed successfully.",
+            "type": "success",
+            "status": 200
+        }
+    }
+
+def unfollow_tag(requesting_user_id, tag_slug):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+
+    requesting_user = response["user"]
+
+    response = get_tag_by_slug_helper(tag_slug)
+    if not response["tag"]:
+        return response
+
+    tag = response["tag"]
+
+    tag_followed = requesting_user.followed_tags.filter(tag=tag).exists()
+    if not tag_followed:
+        return {
+            "message": {
+                "content": "This user already does not follow the tag with the given slug.",
+                "type": "warning",
+                "status": 200
+            }
+        }
+
+    requesting_user.followed_tags.remove(tag)
+
+    return {
+        "message": {
+            "content": "Tag with the given slug is unfollowed successfully.",
+            "type": "success",
+            "status": 200
+        }
+    }
