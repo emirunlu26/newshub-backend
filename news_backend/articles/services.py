@@ -81,6 +81,7 @@ def get_articles_by_tag(requesting_user_id, tag_slug):
     response = get_tag_by_slug_helper(tag_slug)
     if not response["tag"]:
         return response
+    tag = response["tag"]
 
     ARTICLE_ORDER = "-published_at"
     articles = Article.objects.filter(tags__slug=tag_slug).filter(status="published").order_by(ARTICLE_ORDER)
@@ -92,6 +93,7 @@ def get_articles_by_tag(requesting_user_id, tag_slug):
             "status": 200
         },
         "articles": [article_serializers.serialize_article_teaser(article) for article in articles],
+        "tag": article_serializers.serialize_tag(tag),
         "tag_followed": requesting_user.followed_tags.filter(slug=tag_slug).exists() if requesting_user else False
     }
 
