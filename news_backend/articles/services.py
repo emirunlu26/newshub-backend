@@ -1,4 +1,6 @@
 from users.services import get_user_by_id_helper
+from users.models import Author
+from users import serializers as user_serializers
 from models import Tag, Category, Article
 
 def get_tag_by_slug_helper(tag_slug):
@@ -45,6 +47,26 @@ def get_article_by_id_helper(id):
                 "status": 404
             },
             "article": None
+        }
+
+def get_author_by_slug_and_id(slug, id):
+    author = Author.objects.filter(id=id, slug=slug).first()
+    if not author:
+        return {
+            "message": {
+                "content": "Author with the given id and slug can not be found.",
+                "type": "error",
+                "status": 404
+            }
+        }
+    else:
+        return {
+            "message": {
+                "content": "Author with the given id and slug is retrieved successfully.",
+                "type": "success",
+                "status": 200
+            },
+            "author": user_serializers.serialize_author(author)
         }
 
 def follow_tag(requesting_user_id, tag_slug):

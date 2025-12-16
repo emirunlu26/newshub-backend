@@ -1,5 +1,6 @@
 from news_backend import settings
 from posts import serializers as post_serializers
+from articles.serializers import serialize_article_teaser
 
 def serialize_user_teaser(user):
     if not user:
@@ -20,8 +21,10 @@ def serialize_author(author):
         "user_id": user.id,
         "first_name": user.first_name,
         "last_name": user.last_name,
+        "author_slug": author.slug,
         "about": author.about,
-        "profile_picture": author.profile_image.url if author.profile_image else None
+        "profile_image": author.profile_image.url if author.profile_image else None,
+        "articles": [serialize_article_teaser(article) for article in author.articles.order_by("published_at")]
     }
 
 def serialize_ui_customization(customization):

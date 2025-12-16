@@ -123,7 +123,8 @@ def view_articles_by_tag(request, slug):
 
 def view_author_by_slug_and_id(request, slug, id):
     if request.method == "GET":
-        pass
+        response = services.get_author_by_slug_and_id(slug, id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
