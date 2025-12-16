@@ -77,7 +77,7 @@ def get_article_by_slug_and_id_without_type(request, slug, id):
             }
         }, status=405)
 
-def get_article_by_region(request, region):
+def view_articles_by_region(request, region):
     if request.method == "GET":
         pass
     else:
@@ -88,7 +88,7 @@ def get_article_by_region(request, region):
             }
         }, status=405)
 
-def get_article_by_parent_category(request, slug):
+def view_articles_by_parent_category(request, slug):
     if request.method == "GET":
         pass
     else:
@@ -99,7 +99,7 @@ def get_article_by_parent_category(request, slug):
             }
         }, status=405)
 
-def get_article_by_sub_category(request, parent_slug, sub_slug):
+def view_articles_by_sub_category(request, parent_slug, sub_slug):
     if request.method == "GET":
         pass
     else:
@@ -110,7 +110,7 @@ def get_article_by_sub_category(request, parent_slug, sub_slug):
             }
         }, status=405)
 
-def get_article_by_tag(request, slug):
+def view_articles_by_tag(request, slug):
     if request.method == "GET":
         pass
     else:
@@ -121,7 +121,7 @@ def get_article_by_tag(request, slug):
             }
         }, status=405)
 
-def get_author_by_slug_and_id(request, slug, id):
+def view_author_by_slug_and_id(request, slug, id):
     if request.method == "GET":
         pass
     else:
@@ -133,7 +133,7 @@ def get_author_by_slug_and_id(request, slug, id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def get_my_news(request):
+def view_my_news(request):
     if request.method == "GET":
         pass
     else:
@@ -144,7 +144,7 @@ def get_my_news(request):
             }
         }, status=405)
 
-def get_trending_articles(request):
+def view_trending_articles(request):
     if request.method == "GET":
         pass
     else:
