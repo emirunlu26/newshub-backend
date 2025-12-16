@@ -1,6 +1,7 @@
 from users.services import get_user_by_id_helper
 from users.models import Author
 from users import serializers as user_serializers
+from . import serializers as article_serializers
 from models import Tag, Category, Article
 
 def get_tag_by_slug_helper(tag_slug):
@@ -68,6 +69,32 @@ def get_author_by_slug_and_id(slug, id):
             },
             "author": user_serializers.serialize_author(author)
         }
+
+def get_articles_by_tag(requesting_user_id, tag_slug):
+    requesting_user = None
+    if requesting_user_id:
+        response = get_user_by_id_helper(requesting_user_id)
+        if not response["user"]:
+            return response
+        requesting_user = response["user"]
+
+    response = get_tag_by_slug_helper(tag_slug)
+    if not response["tag"]:
+        return response
+
+    ARTICLE_ORDER = "-published_at"
+    articles = Article.objects.filter(tags__slug=tag_slug).filter(status="published").order_by(ARTICLE_ORDER)
+
+    return {
+        "message": {
+            "content": "Articles having the tag with the given slug are retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "articles": [article_serializers.serialize_article_teaser(article) for article in articles],
+        "tag_followed": requesting_user.followed_tags.filter(slug=tag_slug).exists() if requesting_user else False
+    }
+
 
 def follow_tag(requesting_user_id, tag_slug):
     response = get_user_by_id_helper(requesting_user_id)
