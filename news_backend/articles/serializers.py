@@ -7,7 +7,9 @@ def serialize_article_teaser(article):
         "slug": article.slug,
         "type": article.type,
         "title": article.title,
-        "authors": [serialize_author(author) for author in article.authors],
+        "published_at": article.published_at,
+        "priority_level": article.priority_level,
+        "authors": [serialize_author_teaser(author) for author in article.authors],
         "summary": article.summary
     }
 
@@ -35,7 +37,7 @@ def serialize_category(category):
         } if parent_category else None
     }
 
-def serialize_author(author):
+def serialize_author_teaser(author):
     if not author:
         return None
     user = author.user
@@ -43,6 +45,7 @@ def serialize_author(author):
         "user_id": user.id,
         "first_name": user.first_name,
         "last_name": user.last_name,
+        "author_slug": author.slug,
         "about": author.about,
-        "profile_picture": author.profile_image.url if author.profile_image else None
+        "profile_image": author.profile_image.url if author.profile_image else None
     }
