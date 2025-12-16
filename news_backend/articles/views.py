@@ -176,7 +176,18 @@ def follow_or_unfollow_tag(request, slug):
 
 @login_required(login_url="users:login")
 def follow_or_unfollow_category(request, slug):
-    pass
+    if request.method == "POST":
+        response = services.follow_category(request.user.id, slug)
+    elif request.method == "DELETE":
+        response = services.unfollow_category(request.user.id, slug)
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "Only POST and DELETE requests are allowed.",
+                "type": "error"
+            }
+        }, status=405)
+    return JsonResponse(data=response, status=response["message"]["status"])
 
 @login_required(login_url="users:login")
 def bookmark_or_unbookmark_article(request, id):
