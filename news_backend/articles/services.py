@@ -101,11 +101,13 @@ def get_articles_by_parent_category(requesting_user_id, category_slug):
             if requesting_user else False
         }
     else:
-        return redirect(
-            to="view-articles-by-sub-category",
-            parent_slug= category.parent_category.slug,
-            sub_slug= category_slug
-        )
+        return {
+            "message": {
+                "content": "Category is not a parent category.",
+                "type": "redirect"
+            },
+            "redirect_to": f"/articles/categories/{category.parent_category.slug}/{category.slug}"
+        }, 301
 
 
 
