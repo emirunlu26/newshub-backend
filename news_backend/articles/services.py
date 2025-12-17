@@ -109,7 +109,60 @@ def get_articles_by_parent_category(requesting_user_id, category_slug):
             "redirect_to": f"/articles/categories/{category.parent_category.slug}/{category.slug}"
         }, 301
 
+def get_articles_by_sub_category(requesting_user_id, parent_slug, sub_slug):
+    requesting_user = None
+    if requesting_user_id:
+        response = get_user_by_id_helper(requesting_user_id)
+        if not response["user"]:
+            return response
+        requesting_user = response["user"]
 
+    parent_category = Category.objects.filter(slug=parent_slug, parent_category__isnull=True)
+    if not parent_category:
+        return {
+            "message": {
+                "content": "The parent category with the given slug can not be found.",
+                "type": "error",
+                "status": 404
+            }
+        }
+
+    sub_category = Category.objects.filter(slug=sub_slug, parent_category__isnull=False)
+    if not sub_category:
+        return {
+            "message": {
+                "content": "The sub-category with the given slug can not be found.",
+                "type": "error",
+                "status": 404
+            }
+        }
+
+    if sub_category.parent_category.slug != parent_slug:
+        return {
+            "message": {
+                "content": "The parent category of the sub-category with the given slug does not match with the"
+                           "parent category with the given slug.",
+                "type": "error",
+                "status": 400,
+            }
+        }
+
+    sorted_articles = (
+        Article.get_sorted_articles_of_same_category(requesting_user_id, sub_slug, is_parent=False)
+    )
+
+    return {
+        "message": {
+            "content": "All articles with the given sub-category are sorted and retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "articles": [article_serializers.serialize_article_teaser(article) for article in sorted_articles],
+        "parent_category": article_serializers.serialize_category(parent_category),
+        "sub_category": article_serializers.serialize_category(sub_category),
+        "category_followed": requesting_user.followed_categories.filter(slug=sub_slug).exists()
+        if requesting_user else False
+    }
 
 def get_articles_by_tag(requesting_user_id, tag_slug):
     requesting_user = None

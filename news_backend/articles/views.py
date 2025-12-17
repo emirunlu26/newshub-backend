@@ -102,7 +102,8 @@ def view_articles_by_parent_category(request, slug):
 
 def view_articles_by_sub_category(request, parent_slug, sub_slug):
     if request.method == "GET":
-        pass
+        response = services.get_articles_by_sub_category(request.user.id, parent_slug, sub_slug)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
