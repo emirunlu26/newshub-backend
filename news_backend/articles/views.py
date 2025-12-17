@@ -90,7 +90,8 @@ def view_articles_by_region(request, region):
 
 def view_articles_by_parent_category(request, slug):
     if request.method == "GET":
-        pass
+        response = services.get_articles_by_parent_category(request.user.id, slug)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {

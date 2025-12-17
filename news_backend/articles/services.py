@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from users.services import get_user_by_id_helper
 from users.models import Author
 from users import serializers as user_serializers
@@ -69,6 +70,44 @@ def get_author_by_slug_and_id(slug, id):
             },
             "author": user_serializers.serialize_author(author)
         }
+
+def get_articles_by_parent_category(requesting_user_id, category_slug):
+    requesting_user = None
+    if requesting_user_id:
+        response = get_user_by_id_helper(requesting_user_id)
+        if not response["user"]:
+            return response
+        requesting_user = response["user"]
+
+    response = get_category_by_slug_helper(category_slug)
+    if not response["category"]:
+        return response
+    category = response["category"]
+
+    is_parent = not category.parent_category
+    if is_parent:
+        sorted_articles = (
+            Article.get_sorted_articles_of_same_category(requesting_user_id, category_slug, is_parent=True)
+                           )
+        return {
+            "message": {
+                "content": "All articles with the given parent category are sorted and retrieved successfully.",
+                "type": "success",
+                "status": 200
+            },
+            "articles": [article_serializers.serialize_article_teaser(article) for article in sorted_articles],
+            "category": article_serializers.serialize_category(category),
+            "category_followed": requesting_user.followed_categories.filter(slug=category_slug).exists()
+            if requesting_user else False
+        }
+    else:
+        return redirect(
+            to="view-articles-by-sub-category",
+            parent_slug= category.parent_category.slug,
+            sub_slug= category_slug
+        )
+
+
 
 def get_articles_by_tag(requesting_user_id, tag_slug):
     requesting_user = None

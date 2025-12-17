@@ -87,6 +87,12 @@ class Article(models.Model):
     def __str__(self):
         return self.title
 
+    @staticmethod
+    def get_sorted_articles_of_same_category(requesting_user_id, category_slug, is_parent):
+        # KATEGORİ FİLTRESİ YAPARKEN IS_PARENT TRUE İSE BÜTÜN CHILD KATEGORİLERİ İLE FİLTRELEME YAPILIR
+        # PRIORITY LEVEL, PUBLICATION DATE, NUMBER_OF_TAGS_FOLLOWED
+        pass
+
 class ArticleView(models.Model):
     user = models.ForeignKey(to="users.User", on_delete=models.CASCADE, verbose_name="Viewing User")
     article = models.ForeignKey(to=Article, on_delete= models.CASCADE, verbose_name="Viewed Article")
