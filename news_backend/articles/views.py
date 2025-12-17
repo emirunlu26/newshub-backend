@@ -63,12 +63,13 @@ def get_article_by_slug_and_id_without_type(request, slug, id):
                 }
             }, status=404)
         else:
-            return redirect(
-                to="get-article-by-slug-and-id-with-type",
-                type=article.type,
-                slug=slug,
-                id=id
-            )
+            return {
+                "message": {
+                    "content": "Type of the article is not given.",
+                    "type": "redirect"
+                },
+                "redirect_to": f"/articles/{article.type}s/{article.slug}-{article.id}"
+            }, 301
     else:
         return JsonResponse(data={
             "message": {
