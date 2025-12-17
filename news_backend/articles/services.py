@@ -262,34 +262,51 @@ def follow_category(requesting_user_id, category_slug):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
-
     requesting_user = response["user"]
 
     response = get_category_by_slug_helper(category_slug)
     if not response["category"]:
         return response
-
     category = response["category"]
 
-    category_followed = requesting_user.followed_categories.filter(category=category).exists()
-    if category_followed:
+    # If the category is a parent category ...
+    if not category.parent_category:
+        slugs_of_already_followed_sub_categories = [
+            category.slug for category in requesting_user.followed_categories.filter(parent_category=category)
+        ]
+        not_followed_sub_categories = (Category.objects
+                          .filter(parent_category=category)
+                          .exclude(slug__in=slugs_of_already_followed_sub_categories))
+        requesting_user.followed_categories.add(*not_followed_sub_categories)
+
         return {
             "message": {
-                "content": "This user already follows the category with the given slug.",
-                "type": "warning",
+                "content": "All sub-categories of the parent category with the given slug is followed successfully.",
+                "type": "success",
                 "status": 200
             }
         }
 
-    requesting_user.followed_categories.add(category)
+    else:
+        category_followed = requesting_user.followed_categories.filter(category=category).exists()
+        if category_followed:
+            return {
+                "message": {
+                    "content": "This user already follows the category with the given slug.",
+                    "type": "warning",
+                    "status": 200
+                }
+            }
 
-    return {
-        "message": {
-            "content": "Category with the given slug is followed successfully.",
-            "type": "success",
-            "status": 200
+        requesting_user.followed_categories.add(category)
+
+        return {
+            "message": {
+                "content": "Category with the given slug is followed successfully.",
+                "type": "success",
+                "status": 200
+            }
         }
-    }
 
 def unfollow_category(requesting_user_id, category_slug):
     response = get_user_by_id_helper(requesting_user_id)
