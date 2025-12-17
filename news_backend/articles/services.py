@@ -2,8 +2,8 @@ from django.shortcuts import redirect
 from users.services import get_user_by_id_helper
 from users.models import Author
 from users import serializers as user_serializers
-from . import serializers as article_serializers
-from models import Tag, Category, Article
+from articles import serializers as article_serializers
+from articles.models import Tag, Category, Article
 
 def get_tag_by_slug_helper(tag_slug):
     tag = Tag.objects.filter(slug=tag_slug).first()

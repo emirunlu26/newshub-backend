@@ -34,7 +34,14 @@ def serialize_category(category):
             "id": parent_category.id,
             "name": parent_category.name,
             "slug": parent_category.slug
-        } if parent_category else None
+        } if parent_category else None,
+        "sub_categories": [
+            {
+                "id": sub_category.id,
+                "name": sub_category,
+                "slug": category.slug
+            } for sub_category in category.sub_categories.order_by("name")
+        ]
     }
 
 def serialize_author_teaser(author):

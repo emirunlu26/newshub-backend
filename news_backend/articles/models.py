@@ -8,7 +8,7 @@ class Category(models.Model):
     name = models.CharField(max_length=50, verbose_name="Name")
     slug = models.CharField(max_length=50, verbose_name="Slug")
     parent_category = models.ForeignKey(to="articles.Category", on_delete=models.CASCADE, blank=True, null=True
-                                        , verbose_name="Parent Category")
+                                        , related_name="sub_categories", verbose_name="Parent Category")
     def __str__(self):
         return self.name
 
