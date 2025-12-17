@@ -3,8 +3,6 @@ from . import views
 
 app_name = "articles"
 urlpatterns = [
-    path("create/", views.create_article, name="create-article"),
-    path("<article_id>/", views.update_or_delete_article, name="update-or-delete-article"),
     path("my-news/", views.view_my_news, name="view-my-news"),
     path("trending/", views.view_trending_articles, name="view-trending-articles"),
     path("authors/<str:slug>-<int:id>", views.view_author_by_slug_and_id, name="view-author-by-slug-and-id"),

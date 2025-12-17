@@ -13,14 +13,6 @@ def homepage(request):
     pass
 
 @login_required(login_url="users:login")
-def create_article(request):
-    pass
-
-@login_required(login_url="users:login")
-def update_or_delete_article(request, id):
-    pass
-
-@login_required(login_url="users:login")
 def get_articles_by_type(request, type):
     if request.method == "GET":
         pass
