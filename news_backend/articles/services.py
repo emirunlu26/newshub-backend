@@ -87,7 +87,7 @@ def get_articles_by_parent_category(requesting_user_id, category_slug):
     is_parent = not category.parent_category
     if is_parent:
         sorted_articles = (
-            Article.get_sorted_articles_of_same_category(requesting_user_id, category_slug, is_parent=True)
+            Article.get_sorted_articles_of_category(requesting_user, category_slug, is_parent=True)
                            )
         return {
             "message": {

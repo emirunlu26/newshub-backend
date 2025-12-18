@@ -113,7 +113,7 @@ class Article(models.Model):
         ]
 
     @staticmethod
-    def get_sorted_articles_of_same_category(requesting_user_id, category_slug, is_parent):
+    def get_sorted_articles_of_category(requesting_user, category_slug, is_parent):
         # KATEGORİ FİLTRESİ YAPARKEN IS_PARENT TRUE İSE BÜTÜN CHILD KATEGORİLERİ İLE FİLTRELEME YAPILIR
         # PRIORITY LEVEL, PUBLICATION DATE, NUMBER_OF_TAGS_FOLLOWED
         pass
