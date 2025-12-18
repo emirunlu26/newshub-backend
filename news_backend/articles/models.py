@@ -1,5 +1,6 @@
 from ckeditor.fields import RichTextField
 from django.db import models
+from functools import cmp_to_key
 
 
 # Create your models here.
@@ -36,6 +37,15 @@ class Region(models.Model):
     slug = models.CharField(max_length=100, unique=True, verbose_name="Slug")
     belongs_to = models.ManyToManyField(to="self", symmetrical=False, related_name="belonging_regions", blank=True
                                         , null=True, verbose_name="Belongs To")
+
+    def get_all_sub_regions(self):
+        sub_regions = list()
+
+        for sub_region in self.belonging_regions.all():
+            sub_regions.append(sub_region)
+            sub_regions.extend(sub_region.get_all_sub_regions())
+
+        return sub_regions
 
     def __str__(self):
         return self.name
@@ -86,6 +96,21 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+    @staticmethod
+    def get_sorted_articles_of_region(requesting_user, region):
+        def calculate_importance_score(article):
+            pass
+        def compare_articles(article_score_tuple1,article_score_tuple2):
+            pass
+        regions_to_search = [region] + region.get_all_sub_regions()
+        region_slugs_to_search = [region.slug for region in regions_to_search]
+        articles = Article.objects.filter(regions__slug__in=region_slugs_to_search).distinct()
+        articles_with_scores = [(article,calculate_importance_score(article)) for article in articles]
+        sorted_articles_with_scores = sorted(articles_with_scores, key=cmp_to_key(compare_articles))
+        return [
+            art_score_tuple[0] for art_score_tuple in sorted_articles_with_scores
+        ]
 
     @staticmethod
     def get_sorted_articles_of_same_category(requesting_user_id, category_slug, is_parent):

@@ -44,6 +44,20 @@ def serialize_category(category):
         ]
     }
 
+def serialize_region(region):
+    if not region:
+        return None
+    else:
+        parent = region.belongs_to
+        return {
+            "name": region.name,
+            "slug": region.slug,
+            "parent_region": {
+                "name": parent.name,
+                "slug": parent.slug
+            } if parent else None
+        }
+
 def serialize_author_teaser(author):
     if not author:
         return None

@@ -3,7 +3,7 @@ from users.services import get_user_by_id_helper
 from users.models import Author
 from users import serializers as user_serializers
 from articles import serializers as article_serializers
-from articles.models import Tag, Category, Article
+from articles.models import Tag, Category, Article, Region
 
 def get_tag_by_slug_helper(tag_slug):
     tag = Tag.objects.filter(slug=tag_slug).first()
@@ -164,6 +164,35 @@ def get_articles_by_sub_category(requesting_user_id, parent_slug, sub_slug):
         if requesting_user else False
     }
 
+def get_articles_by_region(requesting_user_id, region_slug):
+    requesting_user = None
+    if requesting_user_id:
+        response = get_user_by_id_helper(requesting_user_id)
+        if not response["user"]:
+            return response
+        requesting_user = response["user"]
+
+    region = Region.objects.filter(slug=region_slug).first()
+    if not region:
+        return {
+            "message": {
+                "content": "The region with the given slug can not be found.",
+                "type": "error",
+                "status": 404
+            }
+        }
+
+    sorted_articles = Article.get_sorted_articles_of_region(requesting_user, region)
+
+    return {
+        "message": {
+            "content": "Articles with the given region are sorted and retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "articles": [article_serializers.serialize_article_teaser(article) for article in sorted_articles],
+        "region": article_serializers.serialize_region(region)
+    }
 def get_articles_by_tag(requesting_user_id, tag_slug):
     requesting_user = None
     if requesting_user_id:

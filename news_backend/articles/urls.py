@@ -11,7 +11,7 @@ urlpatterns = [
          , name="get-article-by-slug-and-id-with-type"),
     re_path(r"^(?P<slug>[-a-zA-Z0-9_]+)/(?P<id>[0-9]+)$/", views.get_article_by_slug_and_id_without_type
          , name="get-article-by-slug-and-id"),
-    path("region/<str:region>/", views.view_articles_by_region, name="view-articles-by-region"),
+    path("region/<str:region_slug>/", views.view_articles_by_region, name="view-articles-by-region"),
     path("categories/<str:slug>/", views.view_articles_by_parent_category, name="view-articles-by-parent-category"),
     path("categories/<str:parent_slug>/<str:sub_slug>/", views.view_articles_by_sub_category
          , name="view-articles-by-sub-category"),

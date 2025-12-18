@@ -70,9 +70,10 @@ def get_article_by_slug_and_id_without_type(request, slug, id):
             }
         }, status=405)
 
-def view_articles_by_region(request, region):
+def view_articles_by_region(request, region_slug):
     if request.method == "GET":
-        pass
+        response = services.get_articles_by_region(request.user.id, region_slug)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {
