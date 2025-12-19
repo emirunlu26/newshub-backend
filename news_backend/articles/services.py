@@ -3,7 +3,8 @@ from users.services import get_user_by_id_helper
 from users.models import Author
 from users import serializers as user_serializers
 from articles import serializers as article_serializers
-from articles.models import Tag, Category, Article, Region
+from articles.models import Tag, Category, Article, Region, ArticleReaction
+from posts.models import Reaction
 
 def get_tag_by_slug_helper(tag_slug):
     tag = Tag.objects.filter(slug=tag_slug).first()
@@ -445,4 +446,112 @@ def unbookmark_article(requesting_user_id, article_id):
         }
     }
 
-def create_reaction_to_article()
+def create_reaction_to_article(requesting_user_id, article_id, create_data):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_article_by_id_helper(article_id)
+    if not response["article"]:
+        return response
+    article_to_react = response["article"]
+
+    already_reacted = ArticleReaction.objects.filter(reaction_owner=requesting_user, article=article_to_react).exists()
+    if already_reacted:
+        return {
+            "message": {
+                "content": "This user has already reacted to this post.",
+                "type": "error",
+                "status": 409
+            }
+        }
+
+    new_reaction_name = create_data.get("new_reaction_name")
+
+    if not new_reaction_name or not type(new_reaction_name) is str:
+        return {
+            "message": {
+                "content": "No name or wrong type of name for the new reaction is given.",
+                "type": "error",
+                "status": 400
+            }
+        }
+
+    new_reaction_content = Reaction.objects.filter(name=new_reaction_name).first()
+    if not new_reaction_content:
+        return {
+            "message": {
+                "content": "There is no reaction defined with the given name.",
+                "type": "error",
+                "status": 404
+            }
+        }
+
+    new_article_reaction = ArticleReaction.objects.create(
+        article=article_to_react,
+        reaction=new_reaction_content,
+        reaction_owner=requesting_user
+    )
+
+    return {
+        "message": {
+            "content": "Reaction to the article is created successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "article_reaction": article_serializers.serialize_article_reaction(new_article_reaction)
+    }
+
+def get_reactions_to_article(requesting_user_id, article_id):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_article_by_id_helper(article_id)
+    if not response["article"]:
+        return response
+    reacted_article = response["article"]
+
+    sorted_reactions = ArticleReaction.get_sorted_reactions(requesting_user, reacted_article)
+
+    return {
+        "message": {
+            "content": "Reactions for the article with the given id are retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "reactions": [article_serializers.serialize_article_reaction(reaction) for reaction in sorted_reactions]
+    }
+
+def delete_reaction_to_article(requesting_user_id, article_id):
+    response = get_user_by_id_helper(requesting_user_id)
+    if not response["user"]:
+        return response
+    requesting_user = response["user"]
+
+    response = get_article_by_id_helper(article_id)
+    if not response["article"]:
+        return response
+    reacted_article = response["article"]
+
+    article_reaction = ArticleReaction.objects.filter(reaction_owner=requesting_user, article=reacted_article).first()
+
+    if not article_reaction:
+        return {
+            "message": {
+                "content": "The user has already not reacted to the article with the given id.",
+                "type": "error",
+                "status": 404
+            }
+        }
+    article_reaction.delete()
+
+    return {
+        "message": {
+            "content": "The reaction of the user to the article is deleted successfully.",
+            "type": "success",
+            "status": 200
+        }
+    }

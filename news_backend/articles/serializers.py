@@ -1,3 +1,5 @@
+from news_backend import settings
+
 def serialize_article_teaser(article):
     if not article:
         return None
@@ -69,4 +71,19 @@ def serialize_author_teaser(author):
         "author_slug": author.slug,
         "about": author.about,
         "profile_image": author.profile_image.url if author.profile_image else None
+    }
+
+def serialize_article_reaction(article_reaction):
+    if not article_reaction:
+        return None
+    reaction_content = article_reaction.reaction
+    reaction_icon = reaction_content.icon
+    return {
+        "article_id": article_reaction.article.id,
+        "user_id": article_reaction.reaction_owner.id,
+        "reaction": {
+            "name": reaction_content.name,
+            "icon": reaction_icon.url if reaction_icon else None
+        },
+        "created_at": article_reaction.created_at.strftime(settings.DATE_INPUT_FORMATS[1]),
     }

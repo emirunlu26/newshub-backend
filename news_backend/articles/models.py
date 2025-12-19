@@ -141,6 +141,15 @@ class ArticleReaction(models.Model):
                 f"Reaction: {self.reaction.name}\n"
                 f"Owner: {self.reaction_owner.name}")
 
+    @staticmethod
+    def get_sorted_reactions(requesting_user, reacted_article, newest_first=True):
+        CREATION_TIME_ORDER = "-created_at" if newest_first else "created_at"
+        sorted_reactions_by_created_at = (((ArticleReaction.objects
+                                            .filter(reaction_owner=requesting_user, article=reacted_article))
+                                           .select_related("reaction"))
+                                          .select_related("reaction_owner")
+                                          .order_by(CREATION_TIME_ORDER))
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
