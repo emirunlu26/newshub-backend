@@ -457,6 +457,15 @@ def create_reaction_to_article(requesting_user_id, article_id, create_data):
         return response
     article_to_react = response["article"]
 
+    if article_to_react.requires_premium and not requesting_user.profile.is_premium():
+        return {
+            "message": {
+                "content": "The user must have a premium account to react to a premium article.",
+                "type": "error",
+                "status": 401
+            }
+        }
+
     already_reacted = ArticleReaction.objects.filter(reaction_owner=requesting_user, article=article_to_react).exists()
     if already_reacted:
         return {
