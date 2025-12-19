@@ -146,15 +146,15 @@ def create_view_delete_reaction_to_comment(request, comment_id):
                     "type": "error"
                 },
             }, status=400)
-        response = post_services.create_reaction_to_comment(comment_id, create_data)
+        response = post_services.create_reaction_to_comment(request.user.id, comment_id, create_data)
         return JsonResponse(data=response, status=response["message"]["status"])
 
     elif request.method == "GET":
-        response = post_services.get_reactions_to_comment(comment_id)
+        response = post_services.get_reactions_to_comment(request.user.id, comment_id)
         return JsonResponse(data=response, status=response["message"]["status"])
 
     elif request.method == "DELETE":
-        response = post_services.delete_reaction_to_comment(comment_id)
+        response = post_services.delete_reaction_to_comment(request.user.id, comment_id)
         return JsonResponse(data=response, status=response["message"]["status"])
 
     else:

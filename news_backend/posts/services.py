@@ -516,7 +516,7 @@ def delete_reaction_to_post(requesting_user_id, post_id):
         }
     }
 
-def create_reaction_to_post(requesting_user_id, post_id, update_data):
+def create_reaction_to_post(requesting_user_id, post_id, create_data):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
@@ -537,7 +537,7 @@ def create_reaction_to_post(requesting_user_id, post_id, update_data):
             }
         }
 
-    new_reaction_name = update_data.get("new_reaction_name")
+    new_reaction_name = create_data.get("new_reaction_name")
 
     if not new_reaction_name or not type(new_reaction_name) is str:
         return {
@@ -597,7 +597,7 @@ def get_reactions_to_comment(requesting_user_id, comment_id):
     }
 
 
-def create_reaction_to_comment(requesting_user_id, comment_id, update_data):
+def create_reaction_to_comment(requesting_user_id, comment_id, create_data):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
@@ -618,7 +618,7 @@ def create_reaction_to_comment(requesting_user_id, comment_id, update_data):
             }
         }
 
-    new_reaction_name = update_data.get("new_reaction_name")
+    new_reaction_name = create_data.get("new_reaction_name")
 
     if not new_reaction_name or not type(new_reaction_name) is str:
         return {
