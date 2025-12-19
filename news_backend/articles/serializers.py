@@ -78,9 +78,15 @@ def serialize_article_reaction(article_reaction):
         return None
     reaction_content = article_reaction.reaction
     reaction_icon = reaction_content.icon
+    reaction_owner = article_reaction.reaction_owner
+    reaction_owner_avatar = reaction_owner.avatar
     return {
         "article_id": article_reaction.article.id,
-        "user_id": article_reaction.reaction_owner.id,
+        "user": {
+            "id": reaction_owner.id,
+            "username": reaction_owner.username,
+            "avatar": reaction_owner_avatar.url if reaction_owner_avatar else None
+        },
         "reaction": {
             "name": reaction_content.name,
             "icon": reaction_icon.url if reaction_icon else None

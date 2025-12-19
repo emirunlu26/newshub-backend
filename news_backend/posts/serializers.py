@@ -51,9 +51,16 @@ def serialize_post_reaction(post_reaction):
         return None
     reaction_content = post_reaction.reaction
     reaction_icon = reaction_content.icon
+    reaction_owner = post_reaction.reaction_owner
+    reaction_owner_avatar = reaction_owner.avatar
+
     return {
         "post_id": post_reaction.post.id,
-        "user_id": post_reaction.reaction_owner.id,
+        "user": {
+            "id": reaction_owner.id,
+            "username": reaction_owner.username,
+            "avatar": reaction_owner_avatar.url if reaction_owner_avatar else None
+        },
         "reaction": {
             "name": reaction_content.name,
             "icon": reaction_icon.url if reaction_icon else None
@@ -97,10 +104,16 @@ def serialize_comment_reaction(comment_reaction):
 
     reaction_content =comment_reaction.reaction
     reaction_icon = reaction_content.icon
+    reaction_owner = comment_reaction.reaction_owner
+    reaction_owner_avatar = reaction_owner.avatar
 
     return {
         "comment_id": comment_reaction.post.id,
-        "user_id": comment_reaction.reaction_owner.id,
+        "user": {
+            "id": reaction_owner.id,
+            "username": reaction_owner.username,
+            "avatar": reaction_owner_avatar.url if reaction_owner_avatar else None
+        },
         "reaction": {
             "name": reaction_content.name,
             "icon": reaction_icon.url if reaction_icon else None
