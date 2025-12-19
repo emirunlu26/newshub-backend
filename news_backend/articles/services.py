@@ -194,6 +194,37 @@ def get_articles_by_region(requesting_user_id, region_slug):
         "articles": [article_serializers.serialize_article_teaser(article) for article in sorted_articles],
         "region": article_serializers.serialize_region(region)
     }
+
+def get_articles_by_type(article_type):
+    valid_article_types = [article_type_choice[0] for article_type_choice in Article.ARTICLE_TYPE_CHOICES]
+
+    if type(article_type) != str:
+        return {
+            "message": {
+                "content": "Invalid format, article type must be a string value.",
+                "type": "error",
+                "status": 400
+            }
+        }
+    if article_type not in valid_article_types:
+        return {
+            "message": {
+                "content": "The given article type does not match with any valid article type.",
+                "type": "error",
+                "status": 404
+            }
+        }
+
+    articles = Article.objects.filter(type=article_type).order_by("-created_at")
+    return {
+        "message": {
+            "content": "All articles with the given type are retrieved and sorted successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "articles": [article_serializers.serialize_article_teaser(article) for article in articles]
+    }
+
 def get_articles_by_tag(requesting_user_id, tag_slug):
     requesting_user = None
     if requesting_user_id:

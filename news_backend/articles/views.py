@@ -12,10 +12,10 @@ import json
 def homepage(request):
     pass
 
-@login_required(login_url="users:login")
 def get_articles_by_type(request, type):
     if request.method == "GET":
-        pass
+        response = services.get_articles_by_type(type)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {

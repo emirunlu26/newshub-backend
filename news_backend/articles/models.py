@@ -55,7 +55,6 @@ class Article(models.Model):
     ARTICLE_TYPE_CHOICES = [
         ("news", "News Article"),
         ("opinion", "Opinion"),
-        ("column", "Column"),
         ("analysis", "Analysis")
     ]
 
