@@ -150,6 +150,29 @@ class ArticleReaction(models.Model):
                                           .select_related("reaction_owner")
                                           .order_by(CREATION_TIME_ORDER))
 
+        def compare_reactions(reaction1, reaction2):
+            requesting_user_follows_reaction_1_owner = (reaction1.owner.followers
+                                                        .filter(id=requesting_user.id).exists())
+            requesting_user_follows_reaction_2_owner = (reaction2.owner.followers
+                                                        .filter(id=requesting_user.id).exists())
+
+            if requesting_user_follows_reaction_1_owner and not requesting_user_follows_reaction_2_owner:
+                return -1
+            if not requesting_user_follows_reaction_1_owner and requesting_user_follows_reaction_2_owner:
+                return 1
+
+            reaction_1_owner_is_premium = reaction1.owner.profile.is_premium()
+            reaction_2_owner_is_premium = reaction2.owner.profile.is_premium()
+
+            if reaction_1_owner_is_premium and not reaction_2_owner_is_premium:
+                return -1
+            if not reaction_1_owner_is_premium and reaction_2_owner_is_premium:
+                return 1
+
+            return 0
+
+        return sorted(sorted_reactions_by_created_at, key=cmp_to_key(compare_reactions))
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
