@@ -154,8 +154,35 @@ def view_trending_articles(request):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_add_delete_reaction_to_article(request, post_id):
-    pass
+def view_add_delete_reaction_to_article(request, article_id):
+    if request.method == "POST":
+        try:
+            create_data = json.loads(request.body)
+        except:
+            return JsonResponse(data={
+                "message": {
+                    "content": "Invalid JSON",
+                    "type": "error"
+                },
+            }, status=400)
+        response = services.create_reaction_to_article(request.user.id, article_id, create_data)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    elif request.method == "GET":
+        response = services.get_reactions_to_article(request.user.id, article_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    elif request.method == "DELETE":
+        response = services.delete_reaction_to_article(request.user.id, article_id)
+        return JsonResponse(data=response, status=response["message"]["status"])
+
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "Only POST/GET/DELETE requests are allowed.",
+                "type": "error"
+            }
+        }, status=405)
 
 @login_required(login_url="users:login")
 def follow_or_unfollow_tag(request, slug):

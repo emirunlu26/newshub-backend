@@ -444,3 +444,5 @@ def unbookmark_article(requesting_user_id, article_id):
             "status": 200
         }
     }
+
+def create_reaction_to_article()
