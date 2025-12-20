@@ -24,44 +24,10 @@ def get_articles_by_type(request, type):
             }
         }, status=405)
 
-def get_article_by_slug_and_id_with_type(request, type, slug, id):
+def get_article_by_slug_and_id(request, slug, id):
     if request.method == "GET":
-        pass
-    else:
-        return JsonResponse(data={
-            "message": {
-                "content": "GET request required.",
-                "type": "error"
-            }
-        }, status=405)
-
-def get_article_by_slug_and_id_without_type(request, slug, id):
-    if request.method == "GET":
-        try:
-            register_data = json.loads(request.body)
-        except:
-            return JsonResponse(data={
-                "message": {
-                    "content": "Invalid JSON.",
-                    "type": "error"
-                }
-            }, status=400)
-        article = Article.objects.filter(id=id, slug=slug).first()
-        if article is None:
-            return JsonResponse(data={
-                "message": {
-                    "content": "Article not found, id and/or slug does not match.",
-                    "type": "error"
-                }
-            }, status=404)
-        else:
-            return {
-                "message": {
-                    "content": "Type of the article is not given.",
-                    "type": "redirect"
-                },
-                "redirect_to": f"/articles/{article.type}/{article.slug}-{article.id}"
-            }, 301
+        response = services.get_article_by_slug_and_id(request.user.id, slug, id)
+        return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
             "message": {

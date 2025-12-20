@@ -9,9 +9,32 @@ def serialize_article_teaser(article):
         "slug": article.slug,
         "type": article.type,
         "title": article.title,
-        "published_at": article.published_at,
+        "cover_image": article.cover_image.url if article.cover_image else None,
+        "published_at": article.published_at.strftime(settings.DATE_INPUT_FORMATS[1]),
         "priority_level": article.priority_level,
+        "is_premium": article.requires_premium,
         "authors": [serialize_author_teaser(author) for author in article.authors],
+        "summary": article.summary
+    }
+
+def serialize_article(article):
+    if not article:
+        return None
+
+    return {
+        "id": article.id,
+        "slug": article.slug,
+        "type": article.type,
+        "title": article.title,
+        "cover_image": article.cover_image.url if article.cover_image else None,
+        "published_at": article.published_at.strftime(settings.DATE_INPUT_FORMATS[1]),
+        "priority_level": article.priority_level,
+        "is_premium": article.requires_premium,
+        "authors": [serialize_author_teaser(author) for author in article.authors],
+        "tags": [serialize_tag(tag) for tag in article.tags],
+        "categories": [serialize_category(category) for category in article.categories],
+        "regions": [serialize_region(region) for region in article.regions],
+        "content": article.content,
         "summary": article.summary
     }
 

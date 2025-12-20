@@ -52,6 +52,9 @@ def get_article_by_id_helper(id):
             "article": None
         }
 
+def get_article_by_slug_and_id(requesting_user_id, article_slug, article_id):
+    pass
+
 def get_author_by_slug_and_id(slug, id):
     author = Author.objects.filter(id=id, slug=slug).first()
     if not author:

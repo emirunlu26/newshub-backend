@@ -7,9 +7,7 @@ urlpatterns = [
     path("trending/", views.view_trending_articles, name="view-trending-articles"),
     path("authors/<str:slug>-<int:id>", views.view_author_by_slug_and_id, name="view-author-by-slug-and-id"),
     path("<str:type>/", views.get_articles_by_type, name="get-article-by-type"),
-    re_path(r"^<str:type>/(?P<slug>[-a-zA-Z0-9_]+)/(?P<id>[0-9]+)$/", views.get_article_by_slug_and_id_with_type
-         , name="get-article-by-slug-and-id-with-type"),
-    re_path(r"^(?P<slug>[-a-zA-Z0-9_]+)/(?P<id>[0-9]+)$/", views.get_article_by_slug_and_id_without_type
+    re_path(r"^(?P<slug>[-a-zA-Z0-9_]+)/(?P<id>[0-9]+)$/", views.get_article_by_slug_and_id
          , name="get-article-by-slug-and-id"),
     path("region/<str:region_slug>/", views.view_articles_by_region, name="view-articles-by-region"),
     path("categories/<str:slug>/", views.view_articles_by_parent_category, name="view-articles-by-parent-category"),
