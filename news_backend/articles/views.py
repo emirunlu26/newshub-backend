@@ -12,6 +12,18 @@ import json
 def homepage(request):
     pass
 
+def view_trending_articles(request):
+    if request.method == "GET":
+        response = services.get_trending_articles()
+        return JsonResponse(data=response, status=response["message"]["status"])
+    else:
+        return JsonResponse(data={
+            "message": {
+                "content": "GET request required.",
+                "type": "error"
+            }
+        }, status=405)
+
 def get_articles_by_type(request, type):
     if request.method == "GET":
         response = services.get_articles_by_type(type)
@@ -98,17 +110,6 @@ def view_author_by_slug_and_id(request, slug, id):
 
 @login_required(login_url="users:login")
 def view_my_news(request):
-    if request.method == "GET":
-        pass
-    else:
-        return JsonResponse(data={
-            "message": {
-                "content": "GET request required.",
-                "type": "error"
-            }
-        }, status=405)
-
-def view_trending_articles(request):
     if request.method == "GET":
         pass
     else:

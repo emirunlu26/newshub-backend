@@ -642,3 +642,7 @@ def delete_reaction_to_article(requesting_user_id, article_id):
             "status": 200
         }
     }
+
+def get_trending_articles():
+    # HESAPLAMA YÜKÜNÜ AZALTMAK İÇİN SADECE BELLİ BİR TARİHTEN SONRA YAYIMLANMIŞ MAKALELERİN SKORUNU HESAPLA.
+    pass

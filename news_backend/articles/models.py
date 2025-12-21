@@ -1,5 +1,7 @@
 from ckeditor.fields import RichTextField
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
 from functools import cmp_to_key
 
 
@@ -96,6 +98,65 @@ class Article(models.Model):
     def __str__(self):
         return self.title
 
+    def calculate_total_views_in_last_n_hour(self, hours):
+        n_hours_ago = timezone.now() - timedelta(hours=hours)
+        total_views = ArticleView.objects.filter(article=self, created_at__gte=n_hours_ago).count()
+        return total_views
+
+    def calculate_total_views_in_prior_n_hour(self, hours):
+        current_time = timezone.now()
+        latest_time = current_time - timedelta(hours=hours)
+        earliest_time = current_time - timedelta(hours=hours*2)
+        total_views = (ArticleView.objects
+                       .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+                       .count())
+        return total_views
+
+    def calculate_number_of_unique_viewers_in_last_n_hour(self, hours):
+        n_hours_ago = timezone.now() - timedelta(hours=hours)
+        unique_viewers = (ArticleView.objects
+         .filter(article=self, created_at__gte=n_hours_ago)
+         .values("user").distinct().count())
+
+        return unique_viewers
+
+    def calculate_number_of_unique_viewers_in_prior_n_hour(self, hours):
+        current_time = timezone.now()
+        latest_time = current_time - timedelta(hours=hours)
+        earliest_time = current_time - timedelta(hours=hours*2)
+        unique_viewers = (ArticleView.objects
+                          .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+                          .values("user").distinct().count())
+        return unique_viewers
+
+    def calculate_total_reactions_in_last_n_hour(self, hours):
+        n_hours_ago = timezone.now() - timedelta(hours=hours)
+        total_reactions = ArticleReaction.objects.filter(article=self, created_at__gte=n_hours_ago).count()
+        return total_reactions
+
+    def calculate_total_reactions_in_prior_n_hour(self, hours):
+        current_time = timezone.now()
+        latest_time = current_time - timedelta(hours=hours)
+        earliest_time = current_time - timedelta(hours=hours*2)
+        total_reactions = (ArticleReaction.objects
+                           .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+                           .count())
+        return total_reactions
+
+    def calculate_total_bookmarks_in_last_n_hour(self, hours):
+        n_hours_ago = timezone.now() - timedelta(hours=hours)
+        total_bookmarks = ArticleBookmark.objects.filter(article=self, created_at__gte=n_hours_ago).count()
+        return total_bookmarks
+
+    def calculate_total_bookmarks_in_prior_n_hour(self, hours):
+        current_time = timezone.now()
+        latest_time = current_time - timedelta(hours=hours)
+        earliest_time = current_time - timedelta(hours=hours*2)
+        total_bookmarks = (ArticleBookmark.objects
+                           .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+                           .count())
+        return total_bookmarks
+
     @staticmethod
     def get_sorted_articles_of_region(requesting_user, region):
         def calculate_importance_score(article):
@@ -123,12 +184,20 @@ class ArticleView(models.Model):
     user = models.ForeignKey(to="users.User", null=True, on_delete=models.CASCADE, related_name="article_views",
                              verbose_name="Viewing User")
     article = models.ForeignKey(to=Article, on_delete= models.CASCADE, verbose_name="Viewed Article")
-    time = models.DateTimeField(auto_now_add=True, verbose_name="View Time")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Viewed At")
 
 class  ArticleBookmark(models.Model):
     user = models.ForeignKey(to="users.User", on_delete=models.CASCADE, verbose_name="Bookmarking User")
     article = models.ForeignKey(to=Article, on_delete=models.CASCADE, verbose_name="Bookmarked Article")
-    time = models.DateTimeField(auto_now_add=True, verbose_name="Bookmark Time")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Bookmarked At")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ["user", "article"],
+                name="unique_bookmarking_user_per_article"
+            )
+        ]
 
 class ArticleReaction(models.Model):
     article = models.ForeignKey(to=Article, on_delete=models.CASCADE, related_name="reactions"
@@ -136,6 +205,7 @@ class ArticleReaction(models.Model):
     reaction = models.ForeignKey(to="posts.Reaction", on_delete=models.CASCADE, verbose_name="Reaction")
     reaction_owner = models.ForeignKey(to="users.User", on_delete=models.CASCADE, related_name="article_reactions"
                               , verbose_name="Reacting User")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Reacted At")
 
     def __str__(self):
         return (f"Article: {self.article.name}\n"
