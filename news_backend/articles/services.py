@@ -3,7 +3,7 @@ from users.services import get_user_by_id_helper
 from users.models import Author
 from users import serializers as user_serializers
 from articles import serializers as article_serializers
-from articles.models import Tag, Category, Article, Region, ArticleReaction
+from articles.models import Tag, Category, Article, Region, ArticleReaction, ArticleView
 from posts.models import Reaction
 
 def get_tag_by_slug_helper(tag_slug):
@@ -81,6 +81,9 @@ def get_article_by_slug_and_id(requesting_user_id, article_slug, article_id):
                 "status": 401
             }
         }
+
+    # Register the view of the article
+    ArticleView.objects.create(user=requesting_user, article=article)
 
     return {
         "message": {

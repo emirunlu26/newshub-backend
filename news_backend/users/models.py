@@ -23,8 +23,6 @@ class User(AbstractUser):
     followers = models.ManyToManyField(to="self", symmetrical=False, blank=True, related_name="following_list")
     bookmarked_articles = models.ManyToManyField(to="articles.Article", related_name="bookmarked_by"
                                                  , through="articles.ArticleBookmark")
-    viewed_articles = models.ManyToManyField(to="articles.Article", blank=True, related_name="viewed_by"
-                                             , through="articles.ArticleView")
     followed_categories = models.ManyToManyField(to="articles.Category", blank=True)
     followed_tags = models.ManyToManyField(to="articles.Tag", blank=True)
 

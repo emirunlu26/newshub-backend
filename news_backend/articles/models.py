@@ -120,10 +120,10 @@ class Article(models.Model):
         pass
 
 class ArticleView(models.Model):
-    user = models.ForeignKey(to="users.User", on_delete=models.CASCADE, verbose_name="Viewing User")
+    user = models.ForeignKey(to="users.User", null=True, on_delete=models.CASCADE, related_name="article_views",
+                             verbose_name="Viewing User")
     article = models.ForeignKey(to=Article, on_delete= models.CASCADE, verbose_name="Viewed Article")
     time = models.DateTimeField(auto_now_add=True, verbose_name="View Time")
-    duration_seconds = models.IntegerField(verbose_name="View Duration In Seconds")
 
 class  ArticleBookmark(models.Model):
     user = models.ForeignKey(to="users.User", on_delete=models.CASCADE, verbose_name="Bookmarking User")
