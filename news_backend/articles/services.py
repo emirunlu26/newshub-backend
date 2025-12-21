@@ -53,7 +53,44 @@ def get_article_by_id_helper(id):
         }
 
 def get_article_by_slug_and_id(requesting_user_id, article_slug, article_id):
-    pass
+    requesting_user = None
+    if requesting_user_id:
+        response = get_user_by_id_helper(requesting_user_id)
+        if not response["user"]:
+            return response
+        requesting_user = response["user"]
+
+    article = Article.objects.filter(slug=article_slug, id=article_id).first()
+
+    if not article or not article.is_published():
+        return {
+            "message": {
+                "content": "Article with the given id and slug can not be found.",
+                "type": "error",
+                "status": 404
+            },
+        }
+
+    if article.requires_premium and (not requesting_user or not requesting_user.profile.is_premium()):
+        return {
+            "message": {
+                "content": "A user with a non-premium profile can not display a premium-only article.",
+                "type": "error",
+                "status": 401
+            }
+        }
+
+    return {
+        "message": {
+            "content": "Article with the given id and slug is retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "article": article_serializers.serialize_article(article),
+        "is_bookmarked": requesting_user.bookmarked_articles.filter(article=article).exists()
+        if requesting_user else False
+    }
+
 
 def get_author_by_slug_and_id(slug, id):
     author = Author.objects.filter(id=id, slug=slug).first()

@@ -93,6 +93,10 @@ class Article(models.Model):
     categories = models.ManyToManyField(to=Category, verbose_name="Category")
     regions = models.ManyToManyField(to="articles.Region", verbose_name="Region")
 
+    def is_published(self):
+        PUBLISH_STATUS_INDEX = 3
+        return self.status == Article.ARTICLE_STATUS_CHOICES[PUBLISH_STATUS_INDEX][0]
+
     def __str__(self):
         return self.title
 
