@@ -93,10 +93,6 @@ class Article(models.Model):
     categories = models.ManyToManyField(to=Category, verbose_name="Category")
     regions = models.ManyToManyField(to="articles.Region", verbose_name="Region")
 
-    def is_published(self):
-        PUBLISH_STATUS_INDEX = 3
-        return self.status == Article.ARTICLE_STATUS_CHOICES[PUBLISH_STATUS_INDEX][0]
-
     def __str__(self):
         return self.title
 
@@ -108,7 +104,9 @@ class Article(models.Model):
             pass
         regions_to_search = [region] + region.get_all_sub_regions()
         region_slugs_to_search = [region.slug for region in regions_to_search]
-        articles = Article.objects.filter(regions__slug__in=region_slugs_to_search).distinct()
+        articles = (Article.objects
+                    .filter(regions__slug__in=region_slugs_to_search, published_at__isnull=False)
+                    .distinct())
         articles_with_scores = [(article,calculate_importance_score(article)) for article in articles]
         sorted_articles_with_scores = sorted(articles_with_scores, key=cmp_to_key(compare_articles))
         return [

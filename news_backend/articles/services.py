@@ -38,8 +38,8 @@ def get_category_by_slug_helper(category_slug):
             "category": None
         }
 
-def get_article_by_id_helper(id):
-    article = Article.objects.filter(id=id).first()
+def get_published_article_by_id_helper(id):
+    article = Article.objects.filter(id=id, published_at__isnull=False).first()
     if article:
         return {"article": article}
     else:
@@ -60,9 +60,11 @@ def get_article_by_slug_and_id(requesting_user_id, article_slug, article_id):
             return response
         requesting_user = response["user"]
 
-    article = Article.objects.filter(slug=article_slug, id=article_id).first()
+    article = (Article.objects
+               .filter(slug=article_slug, id=article_id, published_at__isnull=False)
+               .first())
 
-    if not article or not article.is_published():
+    if not article:
         return {
             "message": {
                 "content": "Article with the given id and slug can not be found.",
@@ -255,7 +257,7 @@ def get_articles_by_type(article_type):
             }
         }
 
-    articles = Article.objects.filter(type=article_type).order_by("-created_at")
+    articles = Article.objects.filter(type=article_type, published_at__isnull=False).order_by("-created_at")
     return {
         "message": {
             "content": "All articles with the given type are retrieved and sorted successfully.",
@@ -279,7 +281,9 @@ def get_articles_by_tag(requesting_user_id, tag_slug):
     tag = response["tag"]
 
     ARTICLE_ORDER = "-published_at"
-    articles = Article.objects.filter(tags__slug=tag_slug).filter(status="published").order_by(ARTICLE_ORDER)
+    articles = (Article.objects
+                .filter(tags__slug=tag_slug, published_at__isnull=False)
+                .order_by(ARTICLE_ORDER))
 
     return {
         "message": {
@@ -449,7 +453,7 @@ def bookmark_article(requesting_user_id, article_id):
 
     requesting_user = response["user"]
 
-    response = get_article_by_id_helper(article_id)
+    response = get_published_article_by_id_helper(article_id)
     if not response["article"]:
         return response
 
@@ -491,7 +495,7 @@ def unbookmark_article(requesting_user_id, article_id):
 
     requesting_user = response["user"]
 
-    response = get_article_by_id_helper(article_id)
+    response = get_published_article_by_id_helper(article_id)
     if not response["article"]:
         return response
 
@@ -523,7 +527,7 @@ def create_reaction_to_article(requesting_user_id, article_id, create_data):
         return response
     requesting_user = response["user"]
 
-    response = get_article_by_id_helper(article_id)
+    response = get_published_article_by_id_helper(article_id)
     if not response["article"]:
         return response
     article_to_react = response["article"]
@@ -589,7 +593,7 @@ def get_reactions_to_article(requesting_user_id, article_id):
         return response
     requesting_user = response["user"]
 
-    response = get_article_by_id_helper(article_id)
+    response = get_published_article_by_id_helper(article_id)
     if not response["article"]:
         return response
     reacted_article = response["article"]
@@ -611,7 +615,7 @@ def delete_reaction_to_article(requesting_user_id, article_id):
         return response
     requesting_user = response["user"]
 
-    response = get_article_by_id_helper(article_id)
+    response = get_published_article_by_id_helper(article_id)
     if not response["article"]:
         return response
     reacted_article = response["article"]
