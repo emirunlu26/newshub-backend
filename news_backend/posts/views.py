@@ -56,7 +56,7 @@ def create_comment(request, post_id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_update_delete_post(request, post_id):
+def get_update_delete_post(request, post_id):
     """View function that handles the request for a user to view/update/delete a specific post"""
     if request.method == "GET":
         response = post_services.get_post_by_id(post_id)
@@ -86,7 +86,7 @@ def view_update_delete_post(request, post_id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_delete_comment(request, post_id):
+def get_delete_comment(request, post_id):
     """View function that handles the request for a user to view/delete a specific comment"""
     if request.method == "GET":
         response = post_services.get_comment_by_id(request.user.id, post_id)
@@ -102,7 +102,7 @@ def view_delete_comment(request, post_id):
     return JsonResponse(data=response, status=response["message"]["status"])
 
 @login_required(login_url="users:login")
-def create_view_delete_reaction_to_post(request, post_id):
+def create_get_delete_reaction_to_post(request, post_id):
     """View function that handles the request for a user to add/view/change/delete reaction to a post"""
     if request.method == "POST":
         try:
@@ -134,7 +134,7 @@ def create_view_delete_reaction_to_post(request, post_id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def create_view_delete_reaction_to_comment(request, comment_id):
+def create_get_delete_reaction_to_comment(request, comment_id):
     """View function that handles the request for a user to add/view/change/delete reaction to a comment"""
     if request.method == "POST":
         try:

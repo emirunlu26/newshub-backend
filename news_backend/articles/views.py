@@ -10,9 +10,10 @@ import json
 # Create your views here.
 
 def homepage(request):
+    # TO DO: Implement homepage view
     pass
 
-def view_trending_articles(request):
+def get_trending_articles(request):
     if request.method == "GET":
         response = services.get_trending_articles()
         return JsonResponse(data=response, status=response["message"]["status"])
@@ -48,7 +49,7 @@ def get_article_by_slug_and_id(request, slug, id):
             }
         }, status=405)
 
-def view_articles_by_region(request, region_slug):
+def get_articles_by_region(request, region_slug):
     if request.method == "GET":
         response = services.get_articles_by_region(request.user.id, region_slug)
         return JsonResponse(data=response, status=response["message"]["status"])
@@ -60,7 +61,7 @@ def view_articles_by_region(request, region_slug):
             }
         }, status=405)
 
-def view_articles_by_parent_category(request, slug):
+def get_articles_by_parent_category(request, slug):
     if request.method == "GET":
         response = services.get_articles_by_parent_category(request.user.id, slug)
         return JsonResponse(data=response, status=response["message"]["status"])
@@ -72,7 +73,7 @@ def view_articles_by_parent_category(request, slug):
             }
         }, status=405)
 
-def view_articles_by_sub_category(request, parent_slug, sub_slug):
+def get_articles_by_sub_category(request, parent_slug, sub_slug):
     if request.method == "GET":
         response = services.get_articles_by_sub_category(request.user.id, parent_slug, sub_slug)
         return JsonResponse(data=response, status=response["message"]["status"])
@@ -84,7 +85,7 @@ def view_articles_by_sub_category(request, parent_slug, sub_slug):
             }
         }, status=405)
 
-def view_articles_by_tag(request, slug):
+def get_articles_by_tag(request, slug):
     if request.method == "GET":
         response = services.get_articles_by_tag(request.user.id, slug)
         return JsonResponse(data=response, status=response["message"]["status"])
@@ -96,7 +97,7 @@ def view_articles_by_tag(request, slug):
             }
         }, status=405)
 
-def view_author_by_slug_and_id(request, slug, id):
+def get_author_by_slug_and_id(request, slug, id):
     if request.method == "GET":
         response = services.get_author_by_slug_and_id(slug, id)
         return JsonResponse(data=response, status=response["message"]["status"])
@@ -109,19 +110,12 @@ def view_author_by_slug_and_id(request, slug, id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_my_news(request):
-    if request.method == "GET":
-        pass
-    else:
-        return JsonResponse(data={
-            "message": {
-                "content": "GET request required.",
-                "type": "error"
-            }
-        }, status=405)
+def get_my_news(request):
+    # TO DO: Implement get_my_news view
+    pass
 
 @login_required(login_url="users:login")
-def view_add_delete_reaction_to_article(request, article_id):
+def get_add_delete_reaction_to_article(request, article_id):
     if request.method == "POST":
         try:
             create_data = json.loads(request.body)

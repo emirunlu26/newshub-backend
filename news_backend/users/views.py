@@ -97,7 +97,7 @@ def logout_user(request):
         "redirect_url": "",
     }, status=200)
 
-def view_profile(request, target_user_id):
+def get_profile(request, target_user_id):
     """View function that returns information about the profile of a specific user"""
     if request.method == "GET":
         requesting_user_id = request.user.id if request.user.is_authenticated else None
@@ -111,7 +111,7 @@ def view_profile(request, target_user_id):
             }
         }, status=405)
 
-def view_profile_picture(request, user_id):
+def get_profile_picture(request, user_id):
     """View function that returns the profile picture of a specific user"""
     if request.method == "GET":
         response = services.view_profile_picture(user_id)
@@ -125,7 +125,7 @@ def view_profile_picture(request, user_id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_following_list(request, user_id):
+def get_following_list(request, user_id):
     """View function that returns the list of users which is followed by a specific user"""
     if request.method == "GET":
         response = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
@@ -139,7 +139,7 @@ def view_following_list(request, user_id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_follower_list(request, user_id):
+def get_follower_list(request, user_id):
     """View function that returns the list of users following a specific user"""
     if request.method == "GET":
         response = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
@@ -153,7 +153,7 @@ def view_follower_list(request, user_id):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_followed_tags(request):
+def get_followed_tags(request):
     """View function that returns the list of tags which is followed by the requesting user"""
     if request.method == "GET":
         response = services.view_followed_tags(requesting_user_id=request.user.id)
@@ -167,7 +167,7 @@ def view_followed_tags(request):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_followed_categories(request):
+def get_followed_categories(request):
     """View function that returns the list of categories which is followed by the requesting user"""
     if request.method == "GET":
         response = services.view_followed_categories(requesting_user_id=request.user.id)
@@ -181,7 +181,7 @@ def view_followed_categories(request):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_bookmarked_articles(request):
+def get_bookmarked_articles(request):
     """View function that returns the list of articles which is bookmarked by the requesting user"""
     if request.method == "GET":
         response = services.view_bookmarked_articles(requesting_user_id=request.user.id)
@@ -195,7 +195,7 @@ def view_bookmarked_articles(request):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_update_profile_settings(request):
+def get_update_profile_settings(request):
     """View function that either returns or updates the profile settings of the requesting user"""
     if request.method == "GET":
         response = services.view_profile_settings(request.user.id)
@@ -223,7 +223,7 @@ def view_update_profile_settings(request):
         }, status=405)
 
 @login_required(login_url="users:login")
-def view_update_ui_customization_settings(request):
+def get_update_ui_customization_settings(request):
     """View function that either returns or updates the user interface customization settings of the requesting user"""
     if request.method == "GET":
         response = services.view_ui_customization_settings(request.user.id)
