@@ -14,7 +14,9 @@ def serialize_article_teaser(article):
         "priority_level": article.priority_level,
         "is_premium": article.requires_premium,
         "authors": [serialize_author_teaser(author) for author in article.authors],
-        "summary": article.summary
+        "summary": article.summary,
+        "trending_score": article.trending_score,
+        "editorial_heat_score": article.editorial_heat_score
     }
 
 def serialize_article(article):
@@ -35,7 +37,9 @@ def serialize_article(article):
         "categories": [serialize_category(category) for category in article.categories],
         "regions": [serialize_region(region) for region in article.regions],
         "content": article.content,
-        "summary": article.summary
+        "summary": article.summary,
+        "trending_score": article.trending_score,
+        "editorial_heat_score": article.editorial_heat_score
     }
 
 def serialize_tag(tag):
