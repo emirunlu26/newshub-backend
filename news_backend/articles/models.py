@@ -95,6 +95,10 @@ class Article(models.Model):
     tags = models.ManyToManyField(to=Tag, blank=True, verbose_name="Tag")
     categories = models.ManyToManyField(to=Category, verbose_name="Category")
     regions = models.ManyToManyField(to="articles.Region", verbose_name="Region")
+    trending_score = models.FloatField(default=0.0, db_index=True)
+
+    class Meta:
+        ordering = ["-trending_score"]
 
     def __str__(self):
         return self.title
@@ -138,7 +142,6 @@ class Article(models.Model):
                        / pow((age_of_article_in_hours + ARTICLE_AGE_OFFSET), TIME_DECAY_GRADIENT))
 
         return final_score
-
 
     def was_active_recently(self):
         HOURS = 3
