@@ -644,4 +644,15 @@ def delete_reaction_to_article(requesting_user_id, article_id):
     }
 
 def get_trending_articles():
-    pass
+    TRENDING_ORDER = "-trending_score"
+    TOP_K = 20
+    trending_articles = Article.objects.filter(trending_score__gt=0).order_by(TRENDING_ORDER)[:TOP_K]
+
+    return {
+        "message": {
+            "content": "Trending articles are retrieved successfully.",
+            "type": "success",
+            "status": 200
+        },
+        "articles": [article_serializers.serialize_article_teaser(article) for article in trending_articles]
+    }
