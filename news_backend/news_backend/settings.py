@@ -144,4 +144,8 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'articles.tasks.update_trending_scores',
         'schedule': 3600.0, # Every 3600 seconds (1 hour)
     },
+    'update-editorial-heat-every-half-hour': {
+        'task': 'articles.tasks.update_editorial_heat_scores',
+        'schedule': 1800.0, # Every 1800 seconds (0.5 hour)
+    }
 }

@@ -95,6 +95,7 @@ class Article(models.Model):
     categories = models.ManyToManyField(to=Category, verbose_name="Category")
     regions = models.ManyToManyField(to="articles.Region", verbose_name="Region")
     trending_score = models.FloatField(default=0.0, db_index=True)
+    editorial_heat_score = models.FloatField(default=0.0, db_index=True)
 
     class Meta:
         ordering = ["-trending_score"]
@@ -102,9 +103,22 @@ class Article(models.Model):
     def __str__(self):
         return self.title
 
+    def calculate_editorial_heat_score(self, current_time):
+        SCALING_CONST = 25
+        TIME_DECAY_GRAVITY = 1.2
+        ARTICLE_AGE_OFFSET = 1
+
+        time_delta = current_time - self.published_at
+        hours_since_publication = round(time_delta.total_seconds() / 3600, 2)
+
+        editorial_heat_score = (((self.priority_level + 1) * SCALING_CONST)
+                                / pow((hours_since_publication + ARTICLE_AGE_OFFSET), TIME_DECAY_GRAVITY))
+
+        return editorial_heat_score
+
     def calculate_trending_score(self):
         HOURS = 1
-        TIME_DECAY_GRADIENT = 1.5
+        TIME_DECAY_GRAVITY = 1.5
         ARTICLE_AGE_OFFSET = 2
         VIEW_WEIGHT = 1
         UNIQUE_USER_WEIGHT = 1.2
@@ -138,7 +152,7 @@ class Article(models.Model):
         age_of_article_in_hours = round(time_delta.total_seconds() / 3600, 2)
 
         final_score = ((math.log10(engagement_in_last_n_hour + 1) * velocity_multiplier)
-                       / pow((age_of_article_in_hours + ARTICLE_AGE_OFFSET), TIME_DECAY_GRADIENT))
+                       / pow((age_of_article_in_hours + ARTICLE_AGE_OFFSET), TIME_DECAY_GRAVITY))
 
         return final_score
 
@@ -208,23 +222,6 @@ class Article(models.Model):
                            .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
                            .count())
         return total_bookmarks
-
-    @staticmethod
-    def get_sorted_articles_of_region(requesting_user, region):
-        def calculate_importance_score(article):
-            pass
-        def compare_articles(article_score_tuple1,article_score_tuple2):
-            pass
-        regions_to_search = [region] + region.get_all_sub_regions()
-        region_slugs_to_search = [region.slug for region in regions_to_search]
-        articles = (Article.objects
-                    .filter(regions__slug__in=region_slugs_to_search, published_at__isnull=False)
-                    .distinct())
-        articles_with_scores = [(article,calculate_importance_score(article)) for article in articles]
-        sorted_articles_with_scores = sorted(articles_with_scores, key=cmp_to_key(compare_articles))
-        return [
-            art_score_tuple[0] for art_score_tuple in sorted_articles_with_scores
-        ]
 
     @staticmethod
     def get_sorted_articles_of_category(requesting_user, category_slug, is_parent):

@@ -228,7 +228,20 @@ def get_articles_by_region(requesting_user_id, region_slug):
             }
         }
 
-    sorted_articles = Article.get_sorted_articles_of_region(requesting_user, region)
+    regions_to_search = [region] + region.get_all_sub_regions()
+    region_slugs_to_search = [region.slug for region in regions_to_search]
+
+    published_articles_of_region = (Article.objects
+                .filter(regions__slug__in=region_slugs_to_search, published_at__isnull=False)
+                .distinct())
+
+    TOP_K = 20
+    EDITORIAL_HEAT_ORDER = "-editorial_heat_score"
+    sorted_articles = (published_articles_of_region
+                       .filter(editorial_heat_score__gt=0)
+                       .order_by(EDITORIAL_HEAT_ORDER))[:TOP_K]
+
+
 
     return {
         "message": {
