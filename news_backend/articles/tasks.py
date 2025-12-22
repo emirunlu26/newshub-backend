@@ -4,6 +4,7 @@ from articles.models import Article
 
 @shared_task
 def update_trending_scores():
+    current_time = timezone.now()
     published_articles = Article.objects.filter(published_at__isnull=False)
     candidate_articles = [article for article in published_articles if article.was_active_recently()]
 
@@ -11,7 +12,7 @@ def update_trending_scores():
     published_articles.exclude(id__in=candidate_articles).update(trending_score=0)
 
     for article in candidate_articles:
-        new_score = article.calculate_trending_score()
+        new_score = article.calculate_trending_score(current_time=current_time)
         article.trending_score = new_score
 
     # Bulk update for updating trending scores
@@ -20,6 +21,7 @@ def update_trending_scores():
 @shared_task
 def update_editorial_heat_scores():
     DAY_LIMIT = 3
+
     current_time = timezone.now()
     lower_time_limit = current_time - timezone.timedelta(days=DAY_LIMIT)
     candidate_articles = Article.objects.filter(published_at__gte=lower_time_limit)

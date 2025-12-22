@@ -126,7 +126,7 @@ class Article(models.Model):
 
         return editorial_heat_score
 
-    def calculate_trending_score(self):
+    def calculate_trending_score(self, current_time):
         HOURS = 1
         TIME_DECAY_GRAVITY = 1.5
         ARTICLE_AGE_OFFSET = 2
@@ -135,15 +135,15 @@ class Article(models.Model):
         REACTION_WEIGHT = 2
         BOOKMARK_WEIGHT = 4
 
-        total_views_in_last_n_hour = self.calculate_total_views_in_last_n_hour(HOURS)
-        number_of_unique_viewers_in_last_n_hour = self.calculate_number_of_unique_viewers_in_last_n_hour(HOURS)
-        total_reactions_in_last_n_hour = self.calculate_total_reactions_in_last_n_hour(HOURS)
-        total_bookmarks_in_last_n_hour = self.calculate_total_bookmarks_in_last_n_hour(HOURS)
+        total_views_in_last_n_hour = self.calculate_total_views_in_last_n_hour(HOURS, current_time)
+        number_of_unique_viewers_in_last_n_hour = self.calculate_number_of_unique_viewers_in_last_n_hour(HOURS, current_time)
+        total_reactions_in_last_n_hour = self.calculate_total_reactions_in_last_n_hour(HOURS, current_time)
+        total_bookmarks_in_last_n_hour = self.calculate_total_bookmarks_in_last_n_hour(HOURS, current_time)
 
-        total_views_in_prior_n_hour = self.calculate_total_views_in_prior_n_hour(HOURS)
-        number_of_unique_viewers_in_prior_n_hour = self.calculate_number_of_unique_viewers_in_prior_n_hour(HOURS)
-        total_reactions_in_prior_n_hour = self.calculate_total_reactions_in_prior_n_hour(HOURS)
-        total_bookmarks_in_prior_n_hour = self.calculate_total_bookmarks_in_prior_n_hour(HOURS)
+        total_views_in_prior_n_hour = self.calculate_total_views_in_prior_n_hour(HOURS, current_time)
+        number_of_unique_viewers_in_prior_n_hour = self.calculate_number_of_unique_viewers_in_prior_n_hour(HOURS, current_time)
+        total_reactions_in_prior_n_hour = self.calculate_total_reactions_in_prior_n_hour(HOURS, current_time)
+        total_bookmarks_in_prior_n_hour = self.calculate_total_bookmarks_in_prior_n_hour(HOURS, current_time)
 
         engagement_in_last_n_hour = ((total_views_in_last_n_hour * VIEW_WEIGHT)
                                      + (number_of_unique_viewers_in_last_n_hour * UNIQUE_USER_WEIGHT)
@@ -158,11 +158,11 @@ class Article(models.Model):
         velocity_multiplier = engagement_in_last_n_hour / (engagement_in_prior_n_hour + 1)
         velocity_multiplier = min(2, max(1, velocity_multiplier))
 
-        time_delta = timezone.now() - self.published_at
-        age_of_article_in_hours = round(time_delta.total_seconds() / 3600, 2)
+        time_delta = current_time - self.published_at
+        hours_since_publication = round(time_delta.total_seconds() / 3600, 2)
 
         final_score = ((math.log10(engagement_in_last_n_hour + 1) * velocity_multiplier)
-                       / pow((age_of_article_in_hours + ARTICLE_AGE_OFFSET), TIME_DECAY_GRAVITY))
+                       / pow((hours_since_publication + ARTICLE_AGE_OFFSET), TIME_DECAY_GRAVITY))
 
         return final_score
 
@@ -174,13 +174,12 @@ class Article(models.Model):
         unique_viewers = self.calculate_number_of_unique_viewers_in_last_n_hour(HOURS)
         return views >= VIEW_THRESHOLD and unique_viewers >= UNIQUE_VIEWER_THRESHOLD
 
-    def calculate_total_views_in_last_n_hour(self, hours):
-        n_hours_ago = timezone.now() - timedelta(hours=hours)
+    def calculate_total_views_in_last_n_hour(self, hours, current_time):
+        n_hours_ago = current_time - timedelta(hours=hours)
         total_views = ArticleView.objects.filter(article=self, created_at__gte=n_hours_ago).count()
         return total_views
 
-    def calculate_total_views_in_prior_n_hour(self, hours):
-        current_time = timezone.now()
+    def calculate_total_views_in_prior_n_hour(self, hours, current_time):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
         total_views = (ArticleView.objects
@@ -188,16 +187,15 @@ class Article(models.Model):
                        .count())
         return total_views
 
-    def calculate_number_of_unique_viewers_in_last_n_hour(self, hours):
-        n_hours_ago = timezone.now() - timedelta(hours=hours)
+    def calculate_number_of_unique_viewers_in_last_n_hour(self, hours, current_time):
+        n_hours_ago = current_time - timedelta(hours=hours)
         unique_viewers = (ArticleView.objects
          .filter(article=self, created_at__gte=n_hours_ago)
          .values("user").distinct().count())
 
         return unique_viewers
 
-    def calculate_number_of_unique_viewers_in_prior_n_hour(self, hours):
-        current_time = timezone.now()
+    def calculate_number_of_unique_viewers_in_prior_n_hour(self, hours, current_time):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
         unique_viewers = (ArticleView.objects
@@ -205,13 +203,12 @@ class Article(models.Model):
                           .values("user").distinct().count())
         return unique_viewers
 
-    def calculate_total_reactions_in_last_n_hour(self, hours):
-        n_hours_ago = timezone.now() - timedelta(hours=hours)
+    def calculate_total_reactions_in_last_n_hour(self, hours, current_time):
+        n_hours_ago = current_time - timedelta(hours=hours)
         total_reactions = ArticleReaction.objects.filter(article=self, created_at__gte=n_hours_ago).count()
         return total_reactions
 
-    def calculate_total_reactions_in_prior_n_hour(self, hours):
-        current_time = timezone.now()
+    def calculate_total_reactions_in_prior_n_hour(self, hours, current_time):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
         total_reactions = (ArticleReaction.objects
@@ -219,13 +216,12 @@ class Article(models.Model):
                            .count())
         return total_reactions
 
-    def calculate_total_bookmarks_in_last_n_hour(self, hours):
-        n_hours_ago = timezone.now() - timedelta(hours=hours)
+    def calculate_total_bookmarks_in_last_n_hour(self, hours, current_time):
+        n_hours_ago = current_time - timedelta(hours=hours)
         total_bookmarks = ArticleBookmark.objects.filter(article=self, created_at__gte=n_hours_ago).count()
         return total_bookmarks
 
-    def calculate_total_bookmarks_in_prior_n_hour(self, hours):
-        current_time = timezone.now()
+    def calculate_total_bookmarks_in_prior_n_hour(self, hours, current_time):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
         total_bookmarks = (ArticleBookmark.objects
