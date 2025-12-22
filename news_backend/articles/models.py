@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from functools import cmp_to_key
+import math
 
 
 # Create your models here.
@@ -97,6 +98,55 @@ class Article(models.Model):
 
     def __str__(self):
         return self.title
+
+    def calculate_trending_score(self):
+        HOURS = 1
+        TIME_DECAY_GRADIENT = 1.5
+        ARTICLE_AGE_OFFSET = 2
+        VIEW_WEIGHT = 1
+        UNIQUE_USER_WEIGHT = 1.2
+        REACTION_WEIGHT = 2
+        BOOKMARK_WEIGHT = 4
+
+        total_views_in_last_n_hour = self.calculate_total_views_in_last_n_hour(HOURS)
+        number_of_unique_viewers_in_last_n_hour = self.calculate_number_of_unique_viewers_in_last_n_hour(HOURS)
+        total_reactions_in_last_n_hour = self.calculate_total_reactions_in_last_n_hour(HOURS)
+        total_bookmarks_in_last_n_hour = self.calculate_total_bookmarks_in_last_n_hour(HOURS)
+
+        total_views_in_prior_n_hour = self.calculate_total_views_in_prior_n_hour(HOURS)
+        number_of_unique_viewers_in_prior_n_hour = self.calculate_number_of_unique_viewers_in_prior_n_hour(HOURS)
+        total_reactions_in_prior_n_hour = self.calculate_total_reactions_in_prior_n_hour(HOURS)
+        total_bookmarks_in_prior_n_hour = self.calculate_total_bookmarks_in_prior_n_hour(HOURS)
+
+        engagement_in_last_n_hour = ((total_views_in_last_n_hour * VIEW_WEIGHT)
+                                     + (number_of_unique_viewers_in_last_n_hour * UNIQUE_USER_WEIGHT)
+                                     + (total_reactions_in_last_n_hour * REACTION_WEIGHT)
+                                     + (total_bookmarks_in_last_n_hour * BOOKMARK_WEIGHT))
+
+        engagement_in_prior_n_hour = ((total_views_in_prior_n_hour * VIEW_WEIGHT)
+                                     + (number_of_unique_viewers_in_prior_n_hour * UNIQUE_USER_WEIGHT)
+                                     + (total_reactions_in_prior_n_hour * REACTION_WEIGHT)
+                                     + (total_bookmarks_in_prior_n_hour * BOOKMARK_WEIGHT))
+
+        velocity_multiplier = engagement_in_last_n_hour / (engagement_in_prior_n_hour + 1)
+        velocity_multiplier = min(2, max(1, velocity_multiplier))
+
+        time_delta = timezone.now() - self.published_at
+        age_of_article_in_hours = round(time_delta.total_seconds() / 3600, 2)
+
+        final_score = ((math.log10(engagement_in_last_n_hour + 1) * velocity_multiplier)
+                       / pow((age_of_article_in_hours + ARTICLE_AGE_OFFSET), TIME_DECAY_GRADIENT))
+
+        return final_score
+
+
+    def was_active_recently(self):
+        HOURS = 3
+        VIEW_THRESHOLD = 10
+        UNIQUE_VIEWER_THRESHOLD = 5
+        views = self.calculate_total_views_in_last_n_hour(HOURS)
+        unique_viewers = self.calculate_number_of_unique_viewers_in_last_n_hour(HOURS)
+        return views >= VIEW_THRESHOLD and unique_viewers >= UNIQUE_VIEWER_THRESHOLD
 
     def calculate_total_views_in_last_n_hour(self, hours):
         n_hours_ago = timezone.now() - timedelta(hours=hours)
