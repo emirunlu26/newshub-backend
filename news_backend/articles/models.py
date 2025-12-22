@@ -5,7 +5,6 @@ from datetime import timedelta
 from functools import cmp_to_key
 import math
 
-
 # Create your models here.
 
 class Category(models.Model):

@@ -137,3 +137,11 @@ AUTH_USER_MODEL = 'users.User'
 # MEDIA SETTINGS
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# CELERY BEAT
+CELERY_BEAT_SCHEDULE = {
+    'update-trending-every-hour': {
+        'task': 'articles.tasks.update_trending_scores',
+        'schedule': 3600.0, # Every 3600 seconds (1 hour)
+    },
+}

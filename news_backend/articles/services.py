@@ -644,7 +644,4 @@ def delete_reaction_to_article(requesting_user_id, article_id):
     }
 
 def get_trending_articles():
-    published_articles = Article.objects.filter(published_at__isnull=False)
-    candidate_articles = [article for article in published_articles if article.was_active_recently()]
-
-
+    pass
