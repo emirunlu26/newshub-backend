@@ -1,4 +1,3 @@
-from django.shortcuts import redirect
 from users.services import get_user_by_id_helper
 from users.models import Author
 from users import serializers as user_serializers

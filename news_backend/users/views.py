@@ -101,7 +101,7 @@ def get_profile(request, target_user_id):
     """View function that returns information about the profile of a specific user"""
     if request.method == "GET":
         requesting_user_id = request.user.id if request.user.is_authenticated else None
-        response = services.view_profile(requesting_user_id, target_user_id)
+        response = services.get_profile(requesting_user_id, target_user_id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
@@ -114,7 +114,7 @@ def get_profile(request, target_user_id):
 def get_profile_picture(request, user_id):
     """View function that returns the profile picture of a specific user"""
     if request.method == "GET":
-        response = services.view_profile_picture(user_id)
+        response = services.get_profile_picture(user_id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
@@ -128,7 +128,7 @@ def get_profile_picture(request, user_id):
 def get_following_list(request, user_id):
     """View function that returns the list of users which is followed by a specific user"""
     if request.method == "GET":
-        response = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
+        response = services.get_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
@@ -142,7 +142,7 @@ def get_following_list(request, user_id):
 def get_follower_list(request, user_id):
     """View function that returns the list of users following a specific user"""
     if request.method == "GET":
-        response = services.view_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
+        response = services.get_following_list(requesting_user_id=request.user.id, target_user_id=user_id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
@@ -156,7 +156,7 @@ def get_follower_list(request, user_id):
 def get_followed_tags(request):
     """View function that returns the list of tags which is followed by the requesting user"""
     if request.method == "GET":
-        response = services.view_followed_tags(requesting_user_id=request.user.id)
+        response = services.get_followed_tags(requesting_user_id=request.user.id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
@@ -170,7 +170,7 @@ def get_followed_tags(request):
 def get_followed_categories(request):
     """View function that returns the list of categories which is followed by the requesting user"""
     if request.method == "GET":
-        response = services.view_followed_categories(requesting_user_id=request.user.id)
+        response = services.get_followed_categories(requesting_user_id=request.user.id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
@@ -184,7 +184,7 @@ def get_followed_categories(request):
 def get_bookmarked_articles(request):
     """View function that returns the list of articles which is bookmarked by the requesting user"""
     if request.method == "GET":
-        response = services.view_bookmarked_articles(requesting_user_id=request.user.id)
+        response = services.get_bookmarked_articles(requesting_user_id=request.user.id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={
@@ -198,7 +198,7 @@ def get_bookmarked_articles(request):
 def get_update_profile_settings(request):
     """View function that either returns or updates the profile settings of the requesting user"""
     if request.method == "GET":
-        response = services.view_profile_settings(request.user.id)
+        response = services.get_profile_settings(request.user.id)
         return JsonResponse(data=response, status=response["message"]["status"])
     elif request.method == "PUT":
         try:
@@ -226,7 +226,7 @@ def get_update_profile_settings(request):
 def get_update_ui_customization_settings(request):
     """View function that either returns or updates the user interface customization settings of the requesting user"""
     if request.method == "GET":
-        response = services.view_ui_customization_settings(request.user.id)
+        response = services.get_ui_customization_settings(request.user.id)
         return JsonResponse(data=response, status=response["message"]["status"])
     elif request.method == "PUT":
         try:

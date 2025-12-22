@@ -121,7 +121,7 @@ def register_user(register_data):
 def create_profile_for_new_user_helper(user):
     user_profile = UserProfile.objects.create(user=user)
 
-def view_following_list(requesting_user_id, target_user_id):
+def get_following_list(requesting_user_id, target_user_id):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
@@ -149,7 +149,7 @@ def view_following_list(requesting_user_id, target_user_id):
         "following_list": sorted_following_list
     }
 
-def view_follower_list(requesting_user_id, target_user_id):
+def get_follower_list(requesting_user_id, target_user_id):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
@@ -177,7 +177,7 @@ def view_follower_list(requesting_user_id, target_user_id):
         "followers": sorted_followers
     }
 
-def view_followed_tags(requesting_user_id):
+def get_followed_tags(requesting_user_id):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
@@ -195,7 +195,7 @@ def view_followed_tags(requesting_user_id):
         "followed_tags": sorted_followed_tags
     }
 
-def view_followed_categories(requesting_user_id):
+def get_followed_categories(requesting_user_id):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
@@ -214,7 +214,7 @@ def view_followed_categories(requesting_user_id):
         "followed_categories": sorted_followed_categories
     }
 
-def view_bookmarked_articles(requesting_user_id):
+def get_bookmarked_articles(requesting_user_id):
     response = get_user_by_id_helper(requesting_user_id)
     if not response["user"]:
         return response
@@ -347,7 +347,7 @@ def unfollow_user(requesting_user_id, target_user_id):
             }
         }
 
-def view_profile_picture(target_user_id):
+def get_profile_picture(target_user_id):
     response = get_user_by_id_helper(target_user_id, user_type="Target")
     if not response["user"]:
         return response
@@ -363,7 +363,7 @@ def view_profile_picture(target_user_id):
         "profile_picture_url": avatar.url if avatar else None
     }
 
-def view_profile_settings(user_id):
+def get_profile_settings(user_id):
     response = get_user_by_id_helper(user_id)
     if not response["user"]:
         return response
@@ -488,7 +488,7 @@ def update_profile_settings(user_id, update_data):
             "profile_settings": user_serializers.serialize_user_profile(profile)
         }
 
-def view_ui_customization_settings(user_id):
+def get_ui_customization_settings(user_id):
     response = get_user_by_id_helper(user_id)
     if not response["user"]:
         return response
@@ -598,7 +598,7 @@ def update_ui_customization_settings(user_id, update_data):
             "ui_customization": user_serializers.serialize_ui_customization(customization)
         }
 
-def view_profile(requesting_user_id, target_user_id):
+def get_profile(requesting_user_id, target_user_id):
     requesting_user = None
     if requesting_user_id:
         response = get_user_by_id_helper(target_user_id)
