@@ -132,9 +132,18 @@ def get_articles_by_parent_category(requesting_user_id, category_slug):
 
     is_parent = not category.parent_category
     if is_parent:
-        sorted_articles = (
-            Article.get_sorted_articles_of_category(requesting_user, category_slug, is_parent=True)
-                           )
+        sub_categories = category.get_all_sub_categories()
+        sub_category_slugs = [sub_category.slug for sub_category in sub_categories]
+        published_articles_of_category = (Article.objects
+                                          .filter(published_at__isnull=False, categories__slug__in=sub_category_slugs)
+                                          .distinct())
+        TOP_K = 20
+        EDITORIAL_HEAT_ORDER = "-editorial_heat_score"
+        sorted_articles = (published_articles_of_category
+                           .filter(editorial_heat_score__gt=0)
+                           .order_by(EDITORIAL_HEAT_ORDER))[:TOP_K]
+
+
         return {
             "message": {
                 "content": "All articles with the given parent category are sorted and retrieved successfully.",
@@ -193,9 +202,13 @@ def get_articles_by_sub_category(requesting_user_id, parent_slug, sub_slug):
             }
         }
 
-    sorted_articles = (
-        Article.get_sorted_articles_of_same_category(requesting_user_id, sub_slug, is_parent=False)
-    )
+    published_articles_of_category = Article.objects.filter(published_at__isnull=False, categories__slug=sub_slug)
+
+    TOP_K = 10
+    EDITORIAL_HEAT_ORDER = "-editorial_heat_score"
+    sorted_articles = (published_articles_of_category
+                       .filter(editorial_heat_score__gt=0)
+                       .order_by(EDITORIAL_HEAT_ORDER))[:TOP_K]
 
     return {
         "message": {
@@ -240,8 +253,6 @@ def get_articles_by_region(requesting_user_id, region_slug):
     sorted_articles = (published_articles_of_region
                        .filter(editorial_heat_score__gt=0)
                        .order_by(EDITORIAL_HEAT_ORDER))[:TOP_K]
-
-
 
     return {
         "message": {

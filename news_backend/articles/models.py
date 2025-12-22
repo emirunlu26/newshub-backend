@@ -12,6 +12,16 @@ class Category(models.Model):
     slug = models.CharField(max_length=50, verbose_name="Slug")
     parent_category = models.ForeignKey(to="articles.Category", on_delete=models.CASCADE, blank=True, null=True
                                         , related_name="sub_categories", verbose_name="Parent Category")
+
+    def get_all_sub_categories(self):
+        sub_categories = list()
+
+        for sub_category in self.sub_categories:
+            sub_categories.append(sub_category)
+            sub_categories.extend(sub_category.get_all_sub_categories())
+
+        return sub_categories
+
     def __str__(self):
         return self.name
 
@@ -222,12 +232,6 @@ class Article(models.Model):
                            .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
                            .count())
         return total_bookmarks
-
-    @staticmethod
-    def get_sorted_articles_of_category(requesting_user, category_slug, is_parent):
-        # KATEGORİ FİLTRESİ YAPARKEN IS_PARENT TRUE İSE BÜTÜN CHILD KATEGORİLERİ İLE FİLTRELEME YAPILIR
-        # PRIORITY LEVEL, PUBLICATION DATE, NUMBER_OF_TAGS_FOLLOWED
-        pass
 
 class ArticleView(models.Model):
     user = models.ForeignKey(to="users.User", null=True, on_delete=models.CASCADE, related_name="article_views",
