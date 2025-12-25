@@ -3,6 +3,7 @@ from users.models import Author
 from users import serializers as user_serializers
 from articles import serializers as article_serializers
 from articles.models import Tag, Category, Article, Region, ArticleReaction, ArticleView
+from articles import messages
 from posts.models import Reaction
 
 def get_tag_by_slug_helper(tag_slug):
@@ -13,13 +14,9 @@ def get_tag_by_slug_helper(tag_slug):
         }
     else:
         return {
-            "message": {
-                "content": "Tag with the given slug can not be found.",
-                "type": "error",
-                "status": 404
-            },
+            "message": messages.TAG_NOT_FOUND,
             "tag": None
-        }
+        }, 404
 
 def get_category_by_slug_helper(category_slug):
     category = Category.objects.filter(slug=category_slug).first()
@@ -29,13 +26,9 @@ def get_category_by_slug_helper(category_slug):
         }
     else:
         return {
-            "message": {
-                "content": "Category with the given slug can not be found.",
-                "type": "error",
-                "status": 404
-            },
+            "message": messages.CATEGORY_NOT_FOUND,
             "category": None
-        }
+        }, 404
 
 def get_published_article_by_id_helper(id):
     article = Article.objects.filter(id=id, published_at__isnull=False).first()
@@ -43,13 +36,9 @@ def get_published_article_by_id_helper(id):
         return {"article": article}
     else:
         return {
-            "message": {
-                "content": "Article with the given id can not be found.",
-                "type": "error",
-                "status": 404
-            },
+            "message": messages.PUBLISHED_ARTICLE_ID_NOT_FOUND,
             "article": None
-        }
+        }, 404
 
 def get_article_by_slug_and_id(requesting_user_id, session_id, article_slug, article_id):
     requesting_user = None
@@ -64,22 +53,10 @@ def get_article_by_slug_and_id(requesting_user_id, session_id, article_slug, art
                .first())
 
     if not article:
-        return {
-            "message": {
-                "content": "Article with the given id and slug can not be found.",
-                "type": "error",
-                "status": 404
-            },
-        }
+        return {"message": messages.PUBLISHED_ARTICLE_ID_SLUG_NOT_FOUND}, 404
 
     if article.requires_premium and (not requesting_user or not requesting_user.profile.is_premium()):
-        return {
-            "message": {
-                "content": "A user with a non-premium profile can not display a premium-only article.",
-                "type": "error",
-                "status": 401
-            }
-        }
+        return {"message": messages.PREMIUM_ARTICLE_UNAUTHORIZED_ACCESS}, 401
 
     # Register the view of the article
     if requesting_user:
@@ -87,36 +64,21 @@ def get_article_by_slug_and_id(requesting_user_id, session_id, article_slug, art
     else:
         ArticleView.objects.create(session_id=session_id, article=article)
 
-
     return {
-        "message": {
-            "content": "Article with the given id and slug is retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.ARTICLE_RETRIEVED_SUCCESS,
         "article": article_serializers.serialize_article(article),
         "is_bookmarked": requesting_user.bookmarked_articles.filter(article=article).exists()
         if requesting_user else False
-    }
+    }, 200
 
 
 def get_author_by_slug_and_id(slug, id):
     author = Author.objects.filter(id=id, slug=slug).first()
     if not author:
-        return {
-            "message": {
-                "content": "Author with the given id and slug can not be found.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.AUTHOR_NOT_FOUND}, 404
     else:
         return {
-            "message": {
-                "content": "Author with the given id and slug is retrieved successfully.",
-                "type": "success",
-                "status": 200
-            },
+            "message": messages.AUTHOR_RETRIEVED_SUCCESS,
             "author": user_serializers.serialize_author(author)
         }
 
@@ -146,24 +108,16 @@ def get_articles_by_parent_category(requesting_user_id, category_slug):
                            .filter(editorial_heat_score__gt=0)
                            .order_by(EDITORIAL_HEAT_ORDER))[:TOP_K]
 
-
         return {
-            "message": {
-                "content": "All articles with the given parent category are sorted and retrieved successfully.",
-                "type": "success",
-                "status": 200
-            },
+            "message": messages.ARTICLES_OF_PARENT_CATEGORY_RETRIEVED_SUCCESS,
             "articles": [article_serializers.serialize_article_teaser(article) for article in sorted_articles],
             "category": article_serializers.serialize_category(category),
             "category_followed": requesting_user.followed_categories.filter(slug=category_slug).exists()
             if requesting_user else False
-        }
+        }, 200
     else:
         return {
-            "message": {
-                "content": "Category is not a parent category.",
-                "type": "redirect"
-            },
+            "message": messages.NOT_PARENT_CATEGORY,
             "redirect_to": f"/articles/categories/{category.parent_category.slug}/{category.slug}"
         }, 301
 
@@ -177,33 +131,14 @@ def get_articles_by_sub_category(requesting_user_id, parent_slug, sub_slug):
 
     parent_category = Category.objects.filter(slug=parent_slug, parent_category__isnull=True)
     if not parent_category:
-        return {
-            "message": {
-                "content": "The parent category with the given slug can not be found.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.PARENT_CATEGORY_NOT_FOUND}, 404
 
     sub_category = Category.objects.filter(slug=sub_slug, parent_category__isnull=False)
     if not sub_category:
-        return {
-            "message": {
-                "content": "The sub-category with the given slug can not be found.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.SUB_CATEGORY_NOT_FOUND}, 404
 
     if sub_category.parent_category.slug != parent_slug:
-        return {
-            "message": {
-                "content": "The parent category of the sub-category with the given slug does not match with the"
-                           "parent category with the given slug.",
-                "type": "error",
-                "status": 400,
-            }
-        }
+        return {"message": messages.PARENT_CATEGORY_NOT_MATCHED}, 400
 
     published_articles_of_category = Article.objects.filter(published_at__isnull=False, categories__slug=sub_slug)
 
@@ -214,17 +149,13 @@ def get_articles_by_sub_category(requesting_user_id, parent_slug, sub_slug):
                        .order_by(EDITORIAL_HEAT_ORDER))[:TOP_K]
 
     return {
-        "message": {
-            "content": "All articles with the given sub-category are sorted and retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.ARTICLES_OF_SUB_CATEGORY_RETRIEVED_SUCCESS,
         "articles": [article_serializers.serialize_article_teaser(article) for article in sorted_articles],
         "parent_category": article_serializers.serialize_category(parent_category),
         "sub_category": article_serializers.serialize_category(sub_category),
         "category_followed": requesting_user.followed_categories.filter(slug=sub_slug).exists()
         if requesting_user else False
-    }
+    }, 200
 
 def get_articles_by_region(requesting_user_id, region_slug):
     requesting_user = None
@@ -236,13 +167,7 @@ def get_articles_by_region(requesting_user_id, region_slug):
 
     region = Region.objects.filter(slug=region_slug).first()
     if not region:
-        return {
-            "message": {
-                "content": "The region with the given slug can not be found.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.REGION_NOT_FOUND}, 404
 
     regions_to_search = [region] + region.get_all_sub_regions()
     region_slugs_to_search = [region.slug for region in regions_to_search]
@@ -258,44 +183,26 @@ def get_articles_by_region(requesting_user_id, region_slug):
                        .order_by(EDITORIAL_HEAT_ORDER))[:TOP_K]
 
     return {
-        "message": {
-            "content": "Articles with the given region are sorted and retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.ARTICLES_OF_REGION_RETRIEVED_SUCCESS,
         "articles": [article_serializers.serialize_article_teaser(article) for article in sorted_articles],
         "region": article_serializers.serialize_region(region)
-    }
+    }, 200
 
 def get_articles_by_type(article_type):
     valid_article_types = [article_type_choice[0] for article_type_choice in Article.ARTICLE_TYPE_CHOICES]
 
     if type(article_type) != str:
-        return {
-            "message": {
-                "content": "Invalid format, article type must be a string value.",
-                "type": "error",
-                "status": 400
-            }
-        }
+        return {"message": messages.ARTICLE_TYPE_INVALID_FORMAT}, 400
+
     if article_type not in valid_article_types:
-        return {
-            "message": {
-                "content": "The given article type does not match with any valid article type.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.ARTICLE_TYPE_NOT_FOUND}, 404
 
     articles = Article.objects.filter(type=article_type, published_at__isnull=False).order_by("-created_at")
+
     return {
-        "message": {
-            "content": "All articles with the given type are retrieved and sorted successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.ARTICLES_OF_SAME_TYPE_RETRIEVED_SUCCESS,
         "articles": [article_serializers.serialize_article_teaser(article) for article in articles]
-    }
+    }, 200
 
 def get_articles_by_tag(requesting_user_id, tag_slug):
     requesting_user = None
@@ -316,15 +223,11 @@ def get_articles_by_tag(requesting_user_id, tag_slug):
                 .order_by(ARTICLE_ORDER))
 
     return {
-        "message": {
-            "content": "Articles having the tag with the given slug are retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.ARTICLES_WITH_GIVEN_TAG_RETRIEVED_SUCCESS,
         "articles": [article_serializers.serialize_article_teaser(article) for article in articles],
         "tag": article_serializers.serialize_tag(tag),
         "tag_followed": requesting_user.followed_tags.filter(slug=tag_slug).exists() if requesting_user else False
-    }
+    }, 200
 
 
 def follow_tag(requesting_user_id, tag_slug):
@@ -342,23 +245,11 @@ def follow_tag(requesting_user_id, tag_slug):
 
     tag_followed = requesting_user.followed_tags.filter(tag=tag).exists()
     if tag_followed:
-        return {
-            "message": {
-                "content": "This user already follows the tag with the given slug.",
-                "type": "warning",
-                "status": 200
-            }
-        }
+        return {"message": messages.TAG_ALREADY_FOLLOWED}, 200
 
     requesting_user.followed_tags.add(tag)
 
-    return {
-        "message": {
-            "content": "Tag with the given slug is followed successfully.",
-            "type": "success",
-            "status": 200
-        }
-    }
+    return {"message": messages.TAG_FOLLOWED_SUCCESS}, 200
 
 def unfollow_tag(requesting_user_id, tag_slug):
     response = get_user_by_id_helper(requesting_user_id)
@@ -375,23 +266,11 @@ def unfollow_tag(requesting_user_id, tag_slug):
 
     tag_followed = requesting_user.followed_tags.filter(tag=tag).exists()
     if not tag_followed:
-        return {
-            "message": {
-                "content": "This user already does not follow the tag with the given slug.",
-                "type": "warning",
-                "status": 200
-            }
-        }
+        return {"message": messages.TAG_NOT_FOLLOWED_YET}, 200
 
     requesting_user.followed_tags.remove(tag)
 
-    return {
-        "message": {
-            "content": "Tag with the given slug is unfollowed successfully.",
-            "type": "success",
-            "status": 200
-        }
-    }
+    return {"message": messages.TAG_UNFOLLOWED_SUCCESS}, 200
 
 def follow_category(requesting_user_id, category_slug):
     response = get_user_by_id_helper(requesting_user_id)
@@ -414,34 +293,16 @@ def follow_category(requesting_user_id, category_slug):
                           .exclude(slug__in=slugs_of_already_followed_sub_categories))
         requesting_user.followed_categories.add(*not_followed_sub_categories)
 
-        return {
-            "message": {
-                "content": "All sub-categories of the parent category with the given slug is followed successfully.",
-                "type": "success",
-                "status": 200
-            }
-        }
+        return {"message": messages.PARENT_CATEGORY_FOLLOWED_SUCCESS}, 200
 
     else:
         category_followed = requesting_user.followed_categories.filter(category=category).exists()
         if category_followed:
-            return {
-                "message": {
-                    "content": "This user already follows the category with the given slug.",
-                    "type": "warning",
-                    "status": 200
-                }
-            }
+            return {"message": messages.CATEGORY_ALREADY_FOLLOWED}, 200
 
         requesting_user.followed_categories.add(category)
 
-        return {
-            "message": {
-                "content": "Category with the given slug is followed successfully.",
-                "type": "success",
-                "status": 200
-            }
-        }
+        return {"message": messages.SUB_CATEGORY_FOLLOWED_SUCCESS}, 200
 
 def unfollow_category(requesting_user_id, category_slug):
     response = get_user_by_id_helper(requesting_user_id)
@@ -458,13 +319,7 @@ def unfollow_category(requesting_user_id, category_slug):
 
     category_followed = requesting_user.followed_categories.filter(category=category).exists()
     if not category_followed:
-        return {
-            "message": {
-                "content": "This user already does not follow the category with the given slug.",
-                "type": "warning",
-                "status": 200
-            }
-        }
+        return {"message": messages.CATEGORY_NOT_FOLLOWED_YET}, 200
 
     requesting_user.followed_categories.remove(category)
 
@@ -472,9 +327,8 @@ def unfollow_category(requesting_user_id, category_slug):
         "message": {
             "content": "Category with the given slug is unfollowed successfully.",
             "type": "success",
-            "status": 200
         }
-    }
+    }, 200
 
 def bookmark_article(requesting_user_id, article_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -490,33 +344,15 @@ def bookmark_article(requesting_user_id, article_id):
     article = response["article"]
 
     if article.requires_premium and (requesting_user.profile.is_premium() == False):
-        return {
-            "message": {
-                "content": "A user with a non-premium profile can not bookmark a premium-only article.",
-                "type": "error",
-                "status": 401
-            }
-        }
+        return {"message": messages.PREMIUM_ARTICLE_BOOKMARK_UNAUTHORIZED}, 401
 
     article_bookmarked = requesting_user.bookmarked_articles.filter(article=article).exists()
     if article_bookmarked:
-        return {
-            "message": {
-                "content": "This user already bookmarked the article with the given id.",
-                "type": "warning",
-                "status": 200
-            }
-        }
+        return {"message": messages.ARTICLE_ALREADY_BOOKMARKED}, 200
 
     requesting_user.bookmarked_articles.add(article)
 
-    return {
-        "message": {
-            "content": "The article with the given id is bookmarked successfully.",
-            "type": "success",
-            "status": 200
-        }
-    }
+    return {"message": messages.ARTICLE_BOOKMARKED_SUCCESS}, 200
 
 def unbookmark_article(requesting_user_id, article_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -533,23 +369,11 @@ def unbookmark_article(requesting_user_id, article_id):
 
     article_bookmarked = requesting_user.bookmarked_articles.filter(article=article).exists()
     if not article_bookmarked:
-        return {
-            "message": {
-                "content": "This user already did not bookmark the article with the given id.",
-                "type": "warning",
-                "status": 200
-            }
-        }
+        return {"message": messages.ARTICLE_NOT_YET_BOOKMARKED}, 200
 
     requesting_user.bookmarked_articles.remove(article)
 
-    return {
-        "message": {
-            "content": "The article with the given id is unbookmarked successfully.",
-            "type": "success",
-            "status": 200
-        }
-    }
+    return {"message": messages.ARTICLE_UNBOOKMARKED_SUCCESS}, 200
 
 def create_reaction_to_article(requesting_user_id, article_id, create_data):
     response = get_user_by_id_helper(requesting_user_id)
@@ -563,44 +387,20 @@ def create_reaction_to_article(requesting_user_id, article_id, create_data):
     article_to_react = response["article"]
 
     if article_to_react.requires_premium and not requesting_user.profile.is_premium():
-        return {
-            "message": {
-                "content": "The user must have a premium account to react to a premium article.",
-                "type": "error",
-                "status": 401
-            }
-        }
+        return {"message": messages.PREMIUM_ARTICLE_REACT_UNAUTHORIZED}, 401
 
     already_reacted = ArticleReaction.objects.filter(reaction_owner=requesting_user, article=article_to_react).exists()
     if already_reacted:
-        return {
-            "message": {
-                "content": "This user has already reacted to this post.",
-                "type": "error",
-                "status": 409
-            }
-        }
+        return {"message": messages.ARTICLE_ALREADY_REACTED}, 409
 
     new_reaction_name = create_data.get("new_reaction_name")
 
     if not new_reaction_name or not type(new_reaction_name) is str:
-        return {
-            "message": {
-                "content": "No name or wrong type of name for the new reaction is given.",
-                "type": "error",
-                "status": 400
-            }
-        }
+        return {"message": messages.INVALID_REACTION_NAME}, 400
 
     new_reaction_content = Reaction.objects.filter(name=new_reaction_name).first()
     if not new_reaction_content:
-        return {
-            "message": {
-                "content": "There is no reaction defined with the given name.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.REACTION_NOT_FOUND}, 404
 
     new_article_reaction = ArticleReaction.objects.create(
         article=article_to_react,
@@ -609,13 +409,9 @@ def create_reaction_to_article(requesting_user_id, article_id, create_data):
     )
 
     return {
-        "message": {
-            "content": "Reaction to the article is created successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.ARTICLE_REACTION_CREATED_SUCCESS,
         "article_reaction": article_serializers.serialize_article_reaction(new_article_reaction)
-    }
+    }, 200
 
 def get_reactions_to_article(requesting_user_id, article_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -631,13 +427,9 @@ def get_reactions_to_article(requesting_user_id, article_id):
     sorted_reactions = ArticleReaction.get_sorted_reactions(requesting_user, reacted_article)
 
     return {
-        "message": {
-            "content": "Reactions for the article with the given id are retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.ARTICLE_REACTIONS_RETRIEVED_SUCCESS,
         "reactions": [article_serializers.serialize_article_reaction(reaction) for reaction in sorted_reactions]
-    }
+    }, 200
 
 def delete_reaction_to_article(requesting_user_id, article_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -653,22 +445,11 @@ def delete_reaction_to_article(requesting_user_id, article_id):
     article_reaction = ArticleReaction.objects.filter(reaction_owner=requesting_user, article=reacted_article).first()
 
     if not article_reaction:
-        return {
-            "message": {
-                "content": "The user has already not reacted to the article with the given id.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.ATTEMPT_TO_DELETE_NON_EXISTENT_ARTICLE_REACTION}, 200
+
     article_reaction.delete()
 
-    return {
-        "message": {
-            "content": "The reaction of the user to the article is deleted successfully.",
-            "type": "success",
-            "status": 200
-        }
-    }
+    return {"message": messages.ARTICLE_REACTION_DELETED_SUCCESS}, 200
 
 def get_trending_articles():
     TRENDING_ORDER = "-trending_score"
@@ -676,10 +457,6 @@ def get_trending_articles():
     trending_articles = Article.objects.filter(trending_score__gt=0).order_by(TRENDING_ORDER)[:TOP_K]
 
     return {
-        "message": {
-            "content": "Trending articles are retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.TRENDING_ARTICLES_RETRIEVED_SUCCESS,
         "articles": [article_serializers.serialize_article_teaser(article) for article in trending_articles]
-    }
+    }, 200
