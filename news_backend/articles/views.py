@@ -39,7 +39,10 @@ def get_articles_by_type(request, type):
 
 def get_article_by_slug_and_id(request, slug, id):
     if request.method == "GET":
-        response = services.get_article_by_slug_and_id(request.user.id, slug, id)
+        if not request.session.session_key:
+            request.session.create()
+        session_id = request.session.session_key
+        response = services.get_article_by_slug_and_id(request.user.id, session_id, slug, id)
         return JsonResponse(data=response, status=response["message"]["status"])
     else:
         return JsonResponse(data={

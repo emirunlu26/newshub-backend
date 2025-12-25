@@ -183,25 +183,39 @@ class Article(models.Model):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
         total_views = (ArticleView.objects
-                       .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+                       .filter(article=self, created_at__gte=earliest_time, created_at__lt=latest_time)
                        .count())
         return total_views
 
     def calculate_number_of_unique_viewers_in_last_n_hour(self, hours, current_time):
         n_hours_ago = current_time - timedelta(hours=hours)
-        unique_viewers = (ArticleView.objects
-         .filter(article=self, created_at__gte=n_hours_ago)
+
+        unique_authenticated_viewers = (ArticleView.objects
+         .filter(article=self, created_at__gte=n_hours_ago, user__isnull=False)
          .values("user").distinct().count())
 
-        return unique_viewers
+        unique_anonymous_viewers = (ArticleView.objects
+         .filter(article=self, created_at__gte=n_hours_ago, session_id__isnull=False)
+         .values("session_id").distinct().count())
+
+        return unique_authenticated_viewers + unique_anonymous_viewers
 
     def calculate_number_of_unique_viewers_in_prior_n_hour(self, hours, current_time):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
-        unique_viewers = (ArticleView.objects
-                          .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+
+        unique_authenticated_viewers = (ArticleView.objects
+                                        .filter(article=self, created_at__gte=earliest_time, created_at__lt=latest_time
+                                  , user__isnull=False)
                           .values("user").distinct().count())
-        return unique_viewers
+
+        unique_anonymous_viewers = (ArticleView.objects
+                                        .filter(article=self, created_at__gte=earliest_time,
+                                                created_at__lt=latest_time, session_id__isnull=False)
+                                        .values("session_id").distinct().count())
+
+
+        return unique_authenticated_viewers + unique_anonymous_viewers
 
     def calculate_total_reactions_in_last_n_hour(self, hours, current_time):
         n_hours_ago = current_time - timedelta(hours=hours)
@@ -212,7 +226,7 @@ class Article(models.Model):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
         total_reactions = (ArticleReaction.objects
-                           .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+                           .filter(article=self, created_at__gte=earliest_time, created_at__lt=latest_time)
                            .count())
         return total_reactions
 
@@ -225,13 +239,15 @@ class Article(models.Model):
         latest_time = current_time - timedelta(hours=hours)
         earliest_time = current_time - timedelta(hours=hours*2)
         total_bookmarks = (ArticleBookmark.objects
-                           .filter(article=self, created_at__gte=earliest_time, created_at__lte=latest_time)
+                           .filter(article=self, created_at__gte=earliest_time, created_at__lt=latest_time)
                            .count())
         return total_bookmarks
 
 class ArticleView(models.Model):
-    user = models.ForeignKey(to="users.User", null=True, on_delete=models.CASCADE, related_name="article_views",
-                             verbose_name="Viewing User")
+    user = models.ForeignKey(to="users.User", null=True, blank=True, on_delete=models.CASCADE
+                             , related_name="article_views", verbose_name="Viewing User")
+    # Use session id only for non-authenticated (anonymous) users
+    session_id = models.CharField(max_length=40, null=True, blank=True, verbose_name="Session ID")
     article = models.ForeignKey(to=Article, on_delete= models.CASCADE, verbose_name="Viewed Article")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Viewed At")
 

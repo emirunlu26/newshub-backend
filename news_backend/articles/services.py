@@ -51,7 +51,7 @@ def get_published_article_by_id_helper(id):
             "article": None
         }
 
-def get_article_by_slug_and_id(requesting_user_id, article_slug, article_id):
+def get_article_by_slug_and_id(requesting_user_id, session_id, article_slug, article_id):
     requesting_user = None
     if requesting_user_id:
         response = get_user_by_id_helper(requesting_user_id)
@@ -82,7 +82,11 @@ def get_article_by_slug_and_id(requesting_user_id, article_slug, article_id):
         }
 
     # Register the view of the article
-    ArticleView.objects.create(user=requesting_user, article=article)
+    if requesting_user:
+        ArticleView.objects.create(user=requesting_user, article=article)
+    else:
+        ArticleView.objects.create(session_id=session_id, article=article)
+
 
     return {
         "message": {
