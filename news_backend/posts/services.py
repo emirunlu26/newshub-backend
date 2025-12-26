@@ -1,28 +1,21 @@
 from users.services import get_user_by_id_helper
 from .models import Post, PostImage, PostReaction, Comment, CommentReaction, Reaction
 from articles.models import Article
+from posts import messages
 from . import serializers as post_serializers
 
 def get_post_by_id_helper(post_id):
     post = Post.objects.filter(id=post_id).first()
     if post:
         return {
-            "message": {
-                "content": "Post with the given id is retrieved successfully.",
-                "type": "success",
-                "status": 200
-            },
+            "message": messages.POST_RETRIEVED_SUCCESS,
             "post": post
-        }
+        }, 200
     else:
         return {
-            "message": {
-                "content": "Post with the given id is not found.",
-                "type": "error",
-                "status": 404
-            },
+            "message": messages.POST_NOT_FOUND,
             "post": None
-        }
+        }, 404
 
 def get_comment_by_id_helper(comment_id):
     comment = Comment.objects.filter(id=comment_id).first()
@@ -38,13 +31,9 @@ def get_comment_by_id_helper(comment_id):
         }
     else:
         return {
-            "message": {
-                "content": "Comment with the given id can not be found.",
-                "type": "error",
-                "status": 404
-            },
+            "message": messages.COMMENT_NOT_FOUND,
             "comment": None
-        }
+        }, 404
 
 def create_post(requesting_user_id, create_data):
     response = get_user_by_id_helper(requesting_user_id)
@@ -78,8 +67,7 @@ def create_post(requesting_user_id, create_data):
     else:
         check_dict["error_messages"].append(
             {
-                "content": "Data for post content is absent.",
-                "type": "error",
+                "message": messages.POST_CONTENT_ABSENT,
                 "status": 400
             }
         )
@@ -172,21 +160,11 @@ def get_post_by_id(post_id):
     post = Post.objects.filter(id=post_id).first()
     if post:
         return {
-            "message": {
-                "content": "Post with the given id is retrieved successfully.",
-                "type": "success",
-                "status": 200
-            },
+            "message": messages.POST_RETRIEVED_SUCCESS,
             "post": post
-        }
+        }, 200
     else:
-        return {
-            "message": {
-                "content": "Post with the given id is not found.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.POST_NOT_FOUND}, 404
 
 def update_post_by_id(requesting_user_id, post_id, update_data):
     response = get_user_by_id_helper(requesting_user_id)
@@ -199,8 +177,7 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
         return {
             "messages": [
                 {
-                    "content": "Post with the given id can not be found.",
-                    "type": "error",
+                    "message": messages.POST_NOT_FOUND,
                     "status": 404
                 }
             ]
@@ -210,8 +187,7 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
         return {
             "messages": [
                 {
-                    "content": "You're not authorized to update this post.",
-                    "type": "error",
+                    "message": messages.POST_UPDATE_UNAUTHORIZED,
                     "status": 401
                 }
             ]
@@ -221,8 +197,7 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
         return {
             "messages": [
                 {
-                    "content": f"You can not update a post after {Post.UPDATE_TIME_LIMIT_IN_SECONDS} seconds.",
-                    "type": "error",
+                    "messages": messages.POST_UPDATE_TIME_LIMIT,
                     "status": 400
                 }
             ]
@@ -243,8 +218,7 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
         else:
             check_dict["error_messages"].append(
                 {
-                    "content": f"Invalid post content: {content_error_message}",
-                     "type": "error",
+                    "message": messages.print_post_content_error(content_error_message),
                     "status": 400
                 }
             )
@@ -258,8 +232,7 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
             else:
                 check_dict["error_messages"].append(
                     {
-                        "content": "Article with the given id to reference can not be found.",
-                        "type": "error",
+                        "message": messages.REFERENCED_ARTICLE_NOT_FOUND,
                         "status": 404
                     }
                 )
@@ -274,8 +247,7 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
             else:
                 check_dict["error_messages"].append(
                     {
-                        "content": "Post with the given id to reference can not be found.",
-                        "type": "error",
+                        "message": messages.REFERENCED_POST_NOT_FOUND,
                         "status": 404
                     }
                 )
@@ -300,8 +272,7 @@ def update_post_by_id(requesting_user_id, post_id, update_data):
         return {
             "messages": [
                 {
-                    "content": "Post updated successfully.",
-                    "type": "success",
+                    "message": messages.POST_UPDATED_SUCCESS,
                     "status": 200
                 }
             ]
@@ -315,31 +286,13 @@ def delete_post_by_id(requesting_user_id, post_id):
 
     post = Post.objects.filter(id=post_id).first()
     if not post:
-        return {
-            "message": {
-                "content": "Post with the given id can not be found.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.POST_NOT_FOUND}, 404
 
     if requesting_user.is_superuser or post.is_created_by(requesting_user):
         post.delete()
-        return {
-            "message": {
-                "content": "Post is deleted successfully.",
-                "type": "success",
-                "status": 200
-            }
-        }
+        return {"message": messages.POST_DELETED_SUCCESS}, 200
     else:
-        return {
-            "message": {
-                "content": "You're not authorized to delete this post.",
-                "type": "error",
-                "status": 401
-            }
-        }
+        return {"message": messages.POST_DELETE_UNAUTHORIZED}, 401
 
 def get_comment_by_id(requesting_user_id, comment_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -351,21 +304,11 @@ def get_comment_by_id(requesting_user_id, comment_id):
 
     if comment:
         return {
-            "message": {
-                "content": "Comment with the given id is retrieved successfully.",
-                "type": "success",
-                "status": 200
-            },
+            "message": messages.COMMENT_RETRIEVED_SUCCESS,
             "comment": post_serializers.serialize_comment(comment)
-        }
+        }, 200
     else:
-        return {
-            "message": {
-                "content": "Comment with the given id can not be found.",
-                "type": "error",
-                "status": 404
-            },
-        }
+        return {"message": messages.COMMENT_NOT_FOUND}, 404
 
 def create_comment(user_id, post_id, create_data):
     response = get_user_by_id_helper(user_id)
@@ -382,36 +325,18 @@ def create_comment(user_id, post_id, create_data):
     content = create_data.get("content")
 
     if not content:
-        return {
-            "message": {
-                "content": "Data for comment content is absent.",
-                "type": "error",
-                "status": 400
-            }
-        }
+        return {"message": messages.COMMENT_CONTENT_ABSENT}, 400
 
     # if parent_comment_id is provided, check its existence, else assume that there is no parent_comment
     parent_comment = None
     if parent_comment_id:
         parent_comment = Comment.objects.filter(id=parent_comment_id).first()
         if not parent_comment:
-            return {
-                "message": {
-                    "content": "There is no parent comment with the given id.",
-                    "type": "error",
-                    "status": 404
-                }
-            }
+            return {"message": messages.PARENT_COMMENT_NOT_FOUND}, 404
 
     content_valid, content_error_message = Comment.is_content_valid(content)
     if not content_valid:
-        return {
-            "message": {
-                "content": f"Invalid comment content: {content_error_message}",
-                "type": "error",
-                "status": 400
-            }
-        }
+        return {"message": messages.print_comment_content_error(content_error_message)}, 400
 
     new_comment = Comment.objects.create(
         owner=user,
@@ -421,13 +346,9 @@ def create_comment(user_id, post_id, create_data):
     )
 
     return {
-        "message": {
-            "content": "Comment created successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.COMMENT_CREATED_SUCCESS,
         "comment": post_serializers.serialize_comment(new_comment)
-    }
+    }, 200
 
 def delete_comment_by_id(requesting_user_id, comment_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -437,31 +358,13 @@ def delete_comment_by_id(requesting_user_id, comment_id):
 
     comment = Comment.objects.filter(id=comment_id).first()
     if not comment:
-        return {
-            "message": {
-                "content": "There is no comment with the given id.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.COMMENT_NOT_FOUND}, 404
 
     if requesting_user.is_superuser or comment.is_created_by(requesting_user):
         comment.delete()
-        return {
-            "message": {
-                "content": "Comment is deleted successfully.",
-                "type": "success",
-                "status": 200
-            }
-        }
+        return {"message": messages.COMMENT_DELETED_SUCCESS}, 200
     else:
-        return {
-            "message": {
-                "content": "You're not authorized to delete this comment.",
-                "type": "error",
-                "status": 401
-            }
-        }
+        return {"message": messages.COMMENT_DELETE_UNAUTHORIZED}, 401
 
 def get_reactions_to_post(requesting_user_id, post_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -477,13 +380,9 @@ def get_reactions_to_post(requesting_user_id, post_id):
     sorted_reactions = PostReaction.get_sorted_reactions(requesting_user, reacted_post)
 
     return {
-        "message": {
-            "content": "Reactions for the post with the given id are retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.POST_REACTIONS_RETRIEVED_SUCCESS,
         "reactions": [post_serializers.serialize_post_reaction(reaction) for reaction in sorted_reactions]
-    }
+    }, 200
 
 def delete_reaction_to_post(requesting_user_id, post_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -499,22 +398,10 @@ def delete_reaction_to_post(requesting_user_id, post_id):
     post_reaction = PostReaction.objects.filter(reaction_owner=requesting_user, post=reacted_post).first()
 
     if not post_reaction:
-        return {
-            "message": {
-                "content": "The user has already not reacted to the post with the given id.",
-                "type": "error",
-                "status": 404
-            }
-        }
-    post_reaction.delete()
+        return {"message": messages.POST_NOT_REACTED_YET}, 200
 
-    return {
-        "message": {
-            "content": "The reaction of the user to the post is deleted successfully.",
-            "type": "success",
-            "status": 200
-        }
-    }
+    post_reaction.delete()
+    return {"message": messages.POST_REACTION_DELETED_SUCCESS}, 200
 
 def create_reaction_to_post(requesting_user_id, post_id, create_data):
     response = get_user_by_id_helper(requesting_user_id)
@@ -529,34 +416,16 @@ def create_reaction_to_post(requesting_user_id, post_id, create_data):
 
     already_reacted = PostReaction.objects.filter(reaction_owner=requesting_user, post=reacted_post).exists()
     if already_reacted:
-        return {
-            "message": {
-                "content": "This user has already reacted to this post.",
-                "type": "error",
-                "status": 409
-            }
-        }
+        return {"message": messages.POST_REACTION_ALREADY_CREATED}, 409
 
     new_reaction_name = create_data.get("new_reaction_name")
 
     if not new_reaction_name or not type(new_reaction_name) is str:
-        return {
-            "message": {
-                "content": "No name or wrong type of name for the new reaction is given.",
-                "type": "error",
-                "status": 400
-            }
-        }
+        return { "message": messages.REACTION_NAME_INVALID}, 400
 
     new_reaction_content = Reaction.objects.filter(name=new_reaction_name).first()
     if not new_reaction_content:
-        return {
-            "message": {
-                "content": "There is no reaction defined with the given name.",
-                "type": "error",
-                "status": 404
-            }
-        }
+        return {"message": messages.REACTION_NOT_FOUND}, 404
 
     new_post_reaction = PostReaction.objects.create(
         post=reacted_post,
@@ -565,13 +434,9 @@ def create_reaction_to_post(requesting_user_id, post_id, create_data):
     )
 
     return {
-        "message": {
-            "content": "Reaction to the post is created successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.POST_REACTION_CREATED_SUCCESS,
         "post_reaction": post_serializers.serialize_post_reaction(new_post_reaction)
-    }
+    }, 200
 
 
 def get_reactions_to_comment(requesting_user_id, comment_id):
@@ -588,13 +453,9 @@ def get_reactions_to_comment(requesting_user_id, comment_id):
     sorted_reactions = CommentReaction.get_sorted_reactions(requesting_user, reacted_comment)
 
     return {
-        "message": {
-            "content": "Reactions for the comment with the given id are retrieved successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.COMMENT_REACTIONS_RETRIEVED_SUCCESS,
         "reactions": [post_serializers.serialize_comment_reaction(reaction) for reaction in sorted_reactions]
-    }
+    }, 200
 
 
 def create_reaction_to_comment(requesting_user_id, comment_id, create_data):
@@ -610,34 +471,16 @@ def create_reaction_to_comment(requesting_user_id, comment_id, create_data):
 
     already_reacted = CommentReaction.objects.filter(reaction_owner=requesting_user, comment=reacted_comment).exists()
     if already_reacted:
-        return {
-            "message": {
-                "content": "This user has already reacted to this comment.",
-                "type": "error",
-                "status": 409
-            }
-        }
+        return {"message": messages.COMMENT_REACTION_ALREADY_CREATED}, 409
 
     new_reaction_name = create_data.get("new_reaction_name")
 
     if not new_reaction_name or not type(new_reaction_name) is str:
-        return {
-            "message": {
-                "content": "No name or wrong type of name for the new reaction is given.",
-                "type": "error",
-                "status": 400
-            }
-        }
+        return {"message": messages.REACTION_NAME_INVALID}, 400
 
     new_reaction_content = Reaction.objects.filter(name=new_reaction_name).first()
     if not new_reaction_content:
-        return {
-            "message": {
-                "content": "There is no reaction defined with the given name.",
-                "type": "error",
-                "status": 400
-            }
-        }
+        return {"message": messages.REACTION_NOT_FOUND}, 404
 
     new_comment_reaction = CommentReaction.objects.create(
         comment=reacted_comment,
@@ -646,13 +489,9 @@ def create_reaction_to_comment(requesting_user_id, comment_id, create_data):
     )
 
     return {
-        "message": {
-            "content": "Reaction to the comment is updated successfully.",
-            "type": "success",
-            "status": 200
-        },
+        "message": messages.COMMENT_REACTION_UPDATED_SUCCESS,
         "comment_reaction": post_serializers.serialize_comment_reaction(new_comment_reaction)
-    }
+    }, 200
 
 def delete_reaction_to_comment(requesting_user_id, comment_id):
     response = get_user_by_id_helper(requesting_user_id)
@@ -668,21 +507,9 @@ def delete_reaction_to_comment(requesting_user_id, comment_id):
     comment_reaction = CommentReaction.objects.filter(reaction_owner=requesting_user, comment=reacted_comment).first()
 
     if not comment_reaction:
-        return {
-            "message": {
-                "content": "The user has already not reacted to the comment with the given id.",
-                "type": "error",
-                "status": 404
-            }
-        }
-    comment_reaction.delete()
+        return {"message": messages.COMMENT_NOT_REACTED_YET}, 200
 
-    return {
-        "message": {
-            "content": "The reaction of the user to the comment is deleted successfully.",
-            "type": "success",
-            "status": 200
-        }
-    }
+    comment_reaction.delete()
+    return {"message": messages.COMMENT_REACTION_DELETED_SUCCESS}, 200
 
 
