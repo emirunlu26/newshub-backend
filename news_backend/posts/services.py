@@ -22,13 +22,9 @@ def get_comment_by_id_helper(comment_id):
 
     if comment:
         return {
-            "message": {
-                "content": "Comment with the given id is retrieved successfully.",
-                "type": "success",
-                "status": 200
-            },
+            "message": messages.COMMENT_RETRIEVED_SUCCESS,
             "comment": comment
-        }
+        }, 200
     else:
         return {
             "message": messages.COMMENT_NOT_FOUND,
