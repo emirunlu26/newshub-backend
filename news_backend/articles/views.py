@@ -1,9 +1,6 @@
 """View file that contains all view functions to handle requests related to articles"""
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect
 from django.http import JsonResponse
-from . models import Article
 from . import services
 import json
 
@@ -15,8 +12,8 @@ def homepage(request):
 
 def get_trending_articles(request):
     if request.method == "GET":
-        response = services.get_trending_articles()
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_trending_articles()
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -27,8 +24,8 @@ def get_trending_articles(request):
 
 def get_articles_by_type(request, type):
     if request.method == "GET":
-        response = services.get_articles_by_type(type)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_articles_by_type(type)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -42,8 +39,8 @@ def get_article_by_slug_and_id(request, slug, id):
         if not request.session.session_key:
             request.session.create()
         session_id = request.session.session_key
-        response = services.get_article_by_slug_and_id(request.user.id, session_id, slug, id)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_article_by_slug_and_id(request.user.id, session_id, slug, id)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -54,8 +51,8 @@ def get_article_by_slug_and_id(request, slug, id):
 
 def get_articles_by_region(request, region_slug):
     if request.method == "GET":
-        response = services.get_articles_by_region(request.user.id, region_slug)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_articles_by_region(request.user.id, region_slug)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -66,8 +63,8 @@ def get_articles_by_region(request, region_slug):
 
 def get_articles_by_parent_category(request, slug):
     if request.method == "GET":
-        response = services.get_articles_by_parent_category(request.user.id, slug)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_articles_by_parent_category(request.user.id, slug)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -78,8 +75,8 @@ def get_articles_by_parent_category(request, slug):
 
 def get_articles_by_sub_category(request, parent_slug, sub_slug):
     if request.method == "GET":
-        response = services.get_articles_by_sub_category(request.user.id, parent_slug, sub_slug)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_articles_by_sub_category(request.user.id, parent_slug, sub_slug)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -90,8 +87,8 @@ def get_articles_by_sub_category(request, parent_slug, sub_slug):
 
 def get_articles_by_tag(request, slug):
     if request.method == "GET":
-        response = services.get_articles_by_tag(request.user.id, slug)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_articles_by_tag(request.user.id, slug)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -102,8 +99,8 @@ def get_articles_by_tag(request, slug):
 
 def get_author_by_slug_and_id(request, slug, id):
     if request.method == "GET":
-        response = services.get_author_by_slug_and_id(slug, id)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_author_by_slug_and_id(slug, id)
+        return JsonResponse(data=response, status=status)
     else:
         return JsonResponse(data={
             "message": {
@@ -129,16 +126,13 @@ def get_add_delete_reaction_to_article(request, article_id):
                     "type": "error"
                 },
             }, status=400)
-        response = services.create_reaction_to_article(request.user.id, article_id, create_data)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.create_reaction_to_article(request.user.id, article_id, create_data)
 
     elif request.method == "GET":
-        response = services.get_reactions_to_article(request.user.id, article_id)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.get_reactions_to_article(request.user.id, article_id)
 
     elif request.method == "DELETE":
-        response = services.delete_reaction_to_article(request.user.id, article_id)
-        return JsonResponse(data=response, status=response["message"]["status"])
+        response, status = services.delete_reaction_to_article(request.user.id, article_id)
 
     else:
         return JsonResponse(data={
@@ -148,12 +142,14 @@ def get_add_delete_reaction_to_article(request, article_id):
             }
         }, status=405)
 
+    return JsonResponse(data=response, status=status)
+
 @login_required(login_url="users:login")
 def follow_or_unfollow_tag(request, slug):
     if request.method == "POST":
-        response = services.follow_tag(request.user.id, slug)
+        response, status = services.follow_tag(request.user.id, slug)
     elif request.method == "DELETE":
-        response = services.unfollow_tag(request.user.id, slug)
+        response, status = services.unfollow_tag(request.user.id, slug)
     else:
         return JsonResponse(data={
             "message": {
@@ -161,14 +157,14 @@ def follow_or_unfollow_tag(request, slug):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=response["message"]["status"])
+    return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
 def follow_or_unfollow_category(request, slug):
     if request.method == "POST":
-        response = services.follow_category(request.user.id, slug)
+        response, status = services.follow_category(request.user.id, slug)
     elif request.method == "DELETE":
-        response = services.unfollow_category(request.user.id, slug)
+        response, status = services.unfollow_category(request.user.id, slug)
     else:
         return JsonResponse(data={
             "message": {
@@ -176,14 +172,14 @@ def follow_or_unfollow_category(request, slug):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=response["message"]["status"])
+    return JsonResponse(data=response, status=status)
 
 @login_required(login_url="users:login")
 def bookmark_or_unbookmark_article(request, id):
     if request.method == "POST":
-        response = services.bookmark_article(request.user.id, id)
+        response, status = services.bookmark_article(request.user.id, id)
     elif request.method == "DELETE":
-        response = services.unbookmark_article(request.user.id, id)
+        response, status = services.unbookmark_article(request.user.id, id)
     else:
         return JsonResponse(data={
             "message": {
@@ -191,4 +187,4 @@ def bookmark_or_unbookmark_article(request, id):
                 "type": "error"
             }
         }, status=405)
-    return JsonResponse(data=response, status=response["message"]["status"])
+    return JsonResponse(data=response, status=status)
